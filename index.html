@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Przykładowa strona</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 2rem;
+      color: #1a1a2e;
+    }
+
+    /* ── Buttons ─────────────────────────────────── */
+    .section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px;
+      max-width: 700px;
+      margin: 0 auto 40px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    }
+
+    .section h2 {
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform .1s, box-shadow .1s, opacity .15s;
+    }
+
+    .btn:hover   { opacity: .88; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,.15); }
+    .btn:active  { transform: translateY(0);  box-shadow: none; }
+
+    .btn-primary   { background: #4361ee; color: #fff; }
+    .btn-success   { background: #2ec4b6; color: #fff; }
+    .btn-danger    { background: #e63946; color: #fff; }
+    .btn-warning   { background: #f4a261; color: #fff; }
+    .btn-outline   { background: transparent; color: #4361ee; border: 2px solid #4361ee; }
+    .btn-disabled  { background: #ccc; color: #888; cursor: not-allowed; }
+    .btn-disabled:hover { opacity: 1; transform: none; box-shadow: none; }
+
+    /* ── Tabs ────────────────────────────────────── */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      border-bottom: 2px solid #e0e0e0;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      color: #777;
+      border-radius: 6px 6px 0 0;
+      transition: color .15s, border-color .15s, background .15s;
+    }
+
+    .tab-btn:hover     { color: #4361ee; background: #f0f2ff; }
+    .tab-btn.active    { color: #4361ee; border-bottom-color: #4361ee; font-weight: 600; }
+
+    .tab-panel {
+      display: none;
+      animation: fadeIn .2s ease;
+    }
+
+    .tab-panel.active  { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tab-panel p {
+      line-height: 1.7;
+      color: #555;
+    }
+
+    .tab-panel ul {
+      padding-left: 20px;
+      color: #555;
+      line-height: 1.9;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #e8ecff;
+      color: #4361ee;
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+
+    /* ── Notification area ───────────────────────── */
+    #notification {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .3s, transform .3s;
+      pointer-events: none;
+    }
+
+    #notification.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Przykładowa strona HTML</h1>
+
+  <!-- ── BUTTONS ── -->
+  <div class="section">
+    <h2>Przyciski</h2>
+    <div class="buttons">
+      <button class="btn btn-primary"  onclick="notify('Kliknięto: Podstawowy')">Podstawowy</button>
+      <button class="btn btn-success"  onclick="notify('Kliknięto: Sukces')">Sukces</button>
+      <button class="btn btn-danger"   onclick="notify('Kliknięto: Usuń')">Usuń</button>
+      <button class="btn btn-warning"  onclick="notify('Kliknięto: Ostrzeżenie')">Ostrzeżenie</button>
+      <button class="btn btn-outline"  onclick="notify('Kliknięto: Konturowy')">Konturowy</button>
+      <button class="btn btn-disabled" disabled>Wyłączony</button>
+    </div>
+  </div>
+
+  <!-- ── TABS ── -->
+  <div class="section">
+    <h2>Zakładki</h2>
+
+    <div class="tab-bar" role="tablist">
+      <button class="tab-btn active" role="tab" onclick="switchTab(event, 'tab-home')">
+        Strona główna
+      </button>
+      <button class="tab-btn" role="tab" onclick="switchTab(event, 'tab-about')">
+        O nas <span class="badge">Nowe</span>
+      </button>
+      <button class="tab-btn" role="tab" onclick="switchTab(event, 'tab-services')">
+        Usługi
+      </button>
+      <button class="tab-btn" role="tab" onclick="switchTab(event, 'tab-contact')">
+        Kontakt
+      </button>
+    </div>
+
+    <div id="tab-home" class="tab-panel active" role="tabpanel">
+      <p>Witaj na <strong>stronie głównej</strong>! To jest przykładowa strona demonstrująca
+         działanie zakładek i przycisków zbudowanych w czystym HTML, CSS i JavaScript —
+         bez żadnych zewnętrznych bibliotek.</p>
+    </div>
+
+    <div id="tab-about" class="tab-panel" role="tabpanel">
+      <p>Jesteśmy zespołem pasjonatów tworzących nowoczesne interfejsy użytkownika.
+         Nasze wartości to:</p>
+      <ul>
+        <li>Prostota i czytelność kodu</li>
+        <li>Dostępność (WCAG 2.1)</li>
+        <li>Szybkość i wydajność</li>
+        <li>Responsywny design</li>
+      </ul>
+    </div>
+
+    <div id="tab-services" class="tab-panel" role="tabpanel">
+      <p>Oferujemy szeroki zakres usług:</p>
+      <ul>
+        <li>Projektowanie UI/UX</li>
+        <li>Tworzenie stron internetowych</li>
+        <li>Aplikacje webowe (SPA, PWA)</li>
+        <li>Optymalizacja wydajności</li>
+      </ul>
+    </div>
+
+    <div id="tab-contact" class="tab-panel" role="tabpanel">
+      <p>Skontaktuj się z nami:<br><br>
+         <strong>Email:</strong> kontakt@przyklad.pl<br>
+         <strong>Telefon:</strong> +48 123 456 789<br>
+         <strong>Adres:</strong> ul. Przykładowa 1, 00-001 Warszawa
+      </p>
+    </div>
+  </div>
+
+  <div id="notification"></div>
+
+  <script>
+    function switchTab(event, panelId) {
+      // Deactivate all tabs and panels
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+      // Activate selected
+      event.currentTarget.classList.add('active');
+      document.getElementById(panelId).classList.add('active');
+    }
+
+    let notifTimer;
+    function notify(message) {
+      const el = document.getElementById('notification');
+      el.textContent = message;
+      el.classList.add('show');
+      clearTimeout(notifTimer);
+      notifTimer = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+  </script>
+
+</body>
+</html>
