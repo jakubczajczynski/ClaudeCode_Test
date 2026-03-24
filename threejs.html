@@ -15,7 +15,7 @@
       border: 1px solid rgba(255,255,255,.15); color: #fff;
       padding: 10px 24px; border-radius: 30px;
       font-family: 'Segoe UI', sans-serif; font-size: 1rem;
-      letter-spacing: .04em; pointer-events: none;
+      letter-spacing: .04em; pointer-events: none; white-space: nowrap;
     }
     #label span { color: #7eb8f7; font-weight: 700; }
 
@@ -35,72 +35,236 @@
       font-size: 0.8rem; pointer-events: none;
     }
 
-    /* ── Control panel ──────────────────────────────────────── */
+    /* ── Panel toggle ───────────────────────────────────────── */
     #panel-toggle {
       position: fixed; top: 20px; right: 20px; z-index: 20;
-      width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.15);
+      width: 40px; height: 40px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.15);
       background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
       color: #fff; font-size: 1.2rem; cursor: pointer; transition: background .2s;
     }
-    #panel-toggle:hover { background: rgba(255,255,255,.16); }
+    #panel-toggle:hover { background: rgba(255,255,255,.18); }
 
+    /* ── Side panel ─────────────────────────────────────────── */
     #panel {
       position: fixed; top: 0; right: 0; z-index: 15;
-      width: 280px; height: 100vh; overflow-y: auto;
-      background: rgba(10,10,30,.85); backdrop-filter: blur(14px);
-      border-left: 1px solid rgba(255,255,255,.1);
-      padding: 70px 18px 30px; transform: translateX(100%);
-      transition: transform .3s ease; font-family: 'Segoe UI', sans-serif;
+      width: 290px; height: 100vh; overflow-y: auto;
+      background: rgba(8,8,24,.88); backdrop-filter: blur(14px);
+      border-left: 1px solid rgba(255,255,255,.09);
+      padding: 68px 16px 40px;
+      transform: translateX(100%); transition: transform .28s ease;
+      font-family: 'Segoe UI', sans-serif;
+      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.15) transparent;
     }
     #panel.open { transform: translateX(0); }
-    #panel h3 { color: #7eb8f7; font-size: .85rem; text-transform: uppercase;
-      letter-spacing: .08em; margin: 18px 0 10px; }
-    #panel h3:first-child { margin-top: 0; }
 
-    .ctrl { margin-bottom: 10px; }
-    .ctrl label { display: flex; justify-content: space-between; color: rgba(255,255,255,.7);
-      font-size: .78rem; margin-bottom: 3px; }
-    .ctrl label b { color: #fff; font-variant-numeric: tabular-nums; min-width: 36px; text-align: right; }
-    .ctrl input[type=range] { width: 100%; accent-color: #4361ee; height: 4px; }
+    /* ── Section headers ────────────────────────────────────── */
+    .sec { color: #7eb8f7; font-size: .72rem; text-transform: uppercase;
+      letter-spacing: .1em; margin: 20px 0 8px; border-bottom: 1px solid rgba(126,184,247,.18);
+      padding-bottom: 4px; }
+    .sec:first-child { margin-top: 0; }
+
+    /* ── Generic control (slider + number) ─────────────────── */
+    .ctrl { margin-bottom: 11px; }
+    .ctrl-row { display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 3px; gap: 6px; }
+    .ctrl-name { color: rgba(255,255,255,.65); font-size: .76rem; flex: 1; }
+    .ctrl-num {
+      width: 66px; padding: 2px 6px; text-align: right;
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14);
+      border-radius: 5px; color: #fff; font-size: .76rem; font-family: inherit;
+      outline: none; transition: border-color .15s;
+    }
+    .ctrl-num:focus { border-color: rgba(126,184,247,.5); }
+    /* Hide spin arrows */
+    .ctrl-num::-webkit-inner-spin-button,
+    .ctrl-num::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .ctrl-num[type=number] { -moz-appearance: textfield; }
+    .ctrl input[type=range] { width: 100%; accent-color: #4361ee; height: 4px; cursor: pointer; }
+
+    /* ── Effect block (header with toggle + body) ───────────── */
+    .efx { margin-bottom: 4px; border: 1px solid rgba(255,255,255,.07);
+      border-radius: 8px; overflow: hidden; }
+    .efx-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 10px; background: rgba(255,255,255,.04); cursor: pointer;
+      user-select: none;
+    }
+    .efx-head:hover { background: rgba(255,255,255,.07); }
+    .efx-title { color: #fff; font-size: .8rem; font-weight: 600; }
+    .efx-right { display: flex; align-items: center; gap: 8px; }
+    .efx-chevron { color: rgba(255,255,255,.4); font-size: .7rem; transition: transform .2s; }
+    .efx.collapsed .efx-chevron { transform: rotate(-90deg); }
+    .efx-body { padding: 8px 10px 4px; }
+    .efx.collapsed .efx-body { display: none; }
+
+    /* ── Toggle switch ──────────────────────────────────────── */
+    .tog { position: relative; display: inline-block;
+      width: 34px; height: 20px; flex-shrink: 0; cursor: pointer; }
+    .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .tog-track { position: absolute; inset: 0; border-radius: 10px;
+      background: rgba(255,255,255,.2); transition: background .18s; }
+    .tog-track::after { content: ''; position: absolute;
+      width: 14px; height: 14px; left: 3px; top: 3px;
+      background: #fff; border-radius: 50%; transition: left .18s; }
+    .tog input:checked ~ .tog-track { background: #4361ee; }
+    .tog input:checked ~ .tog-track::after { left: 17px; }
   </style>
 </head>
 <body>
   <a href="index.html" id="back">← Wróć</a>
-  <div id="label">Scena 3D – <span>Three.js</span> &nbsp;<small style="opacity:.55;font-size:.78em">IBL / GI</small></div>
-  <div id="info">Lewy przycisk myszy: obrót &nbsp;|&nbsp; Kółko: zoom &nbsp;|&nbsp; Prawy przycisk: przesunięcie</div>
+  <div id="label">Scena 3D – <span>Three.js</span> &nbsp;<small style="opacity:.5;font-size:.76em">IBL / GI + Post-FX</small></div>
+  <div id="info">LPM: obrót &nbsp;|&nbsp; kółko: zoom &nbsp;|&nbsp; PPM: przesunięcie</div>
+  <button id="panel-toggle" title="Ustawienia">⚙</button>
 
-  <button id="panel-toggle" title="Ustawienia GI">⚙</button>
   <div id="panel">
-    <h3>Oświetlenie</h3>
-    <div class="ctrl"><label>IBL Intensity <b id="v-ibl">1.0</b></label>
-      <input type="range" min="0" max="3" step="0.05" value="1.0" id="s-ibl"></div>
-    <div class="ctrl"><label>Dir Light <b id="v-dir">2.5</b></label>
-      <input type="range" min="0" max="5" step="0.1" value="2.5" id="s-dir"></div>
-    <div class="ctrl"><label>Fill Light <b id="v-fill">1.0</b></label>
-      <input type="range" min="0" max="3" step="0.05" value="1.0" id="s-fill"></div>
-    <div class="ctrl"><label>Ambient <b id="v-amb">0.12</b></label>
-      <input type="range" min="0" max="1" step="0.01" value="0.12" id="s-amb"></div>
 
-    <h3>Bounce Panels</h3>
-    <div class="ctrl"><label>Panel Emissive <b id="v-bem">0.15</b></label>
-      <input type="range" min="0" max="1" step="0.01" value="0.15" id="s-bem"></div>
-    <div class="ctrl"><label>Bounce Lights <b id="v-bli">0.40</b></label>
-      <input type="range" min="0" max="2" step="0.05" value="0.40" id="s-bli"></div>
+    <div class="sec">Oświetlenie</div>
 
-    <h3>Atmosfera</h3>
-    <div class="ctrl"><label>Fog Near <b id="v-fn">20</b></label>
-      <input type="range" min="3" max="50" step="1" value="20" id="s-fn"></div>
-    <div class="ctrl"><label>Fog Far <b id="v-ff">60</b></label>
-      <input type="range" min="15" max="120" step="1" value="60" id="s-ff"></div>
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">IBL Intensity</span>
+        <input type="number" class="ctrl-num" id="n-ibl" value="1" step="0.1">
+      </div><input type="range" id="s-ibl" min="0" max="20" step="0.1" value="1"></div>
 
-    <h3>Post-processing</h3>
-    <div class="ctrl"><label>Exposure <b id="v-exp">1.20</b></label>
-      <input type="range" min="0.2" max="4" step="0.05" value="1.2" id="s-exp"></div>
-    <div class="ctrl"><label>Bloom Strength <b id="v-bls">0.30</b></label>
-      <input type="range" min="0" max="2" step="0.05" value="0.30" id="s-bls"></div>
-    <div class="ctrl"><label>Bloom Threshold <b id="v-blt">0.85</b></label>
-      <input type="range" min="0" max="2" step="0.05" value="0.85" id="s-blt"></div>
-  </div>
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Dir Light</span>
+        <input type="number" class="ctrl-num" id="n-dir" value="2.5" step="0.5">
+      </div><input type="range" id="s-dir" min="0" max="30" step="0.5" value="2.5"></div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Fill Light</span>
+        <input type="number" class="ctrl-num" id="n-fill" value="1" step="0.1">
+      </div><input type="range" id="s-fill" min="0" max="15" step="0.1" value="1"></div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Ambient</span>
+        <input type="number" class="ctrl-num" id="n-amb" value="0.12" step="0.05">
+      </div><input type="range" id="s-amb" min="0" max="5" step="0.05" value="0.12"></div>
+
+    <div class="sec">Bounce Panels</div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Panel Emissive</span>
+        <input type="number" class="ctrl-num" id="n-bem" value="0.15" step="0.05">
+      </div><input type="range" id="s-bem" min="0" max="5" step="0.05" value="0.15"></div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Bounce Lights</span>
+        <input type="number" class="ctrl-num" id="n-bli" value="0.4" step="0.1">
+      </div><input type="range" id="s-bli" min="0" max="10" step="0.1" value="0.4"></div>
+
+    <div class="sec">Atmosfera</div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Fog Near</span>
+        <input type="number" class="ctrl-num" id="n-fn" value="20" step="1">
+      </div><input type="range" id="s-fn" min="1" max="60" step="1" value="20"></div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Fog Far</span>
+        <input type="number" class="ctrl-num" id="n-ff" value="60" step="5">
+      </div><input type="range" id="s-ff" min="10" max="200" step="5" value="60"></div>
+
+    <div class="sec">Post-processing</div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Exposure</span>
+        <input type="number" class="ctrl-num" id="n-exp" value="1.2" step="0.1">
+      </div><input type="range" id="s-exp" min="0" max="10" step="0.1" value="1.2"></div>
+
+    <!-- Bloom -->
+    <div class="efx" id="efx-bloom">
+      <div class="efx-head" onclick="toggleEfx('bloom')">
+        <span class="efx-title">Bloom</span>
+        <div class="efx-right">
+          <label class="tog" onclick="event.stopPropagation()">
+            <input type="checkbox" id="e-bloom" checked>
+            <span class="tog-track"></span>
+          </label>
+          <span class="efx-chevron">▾</span>
+        </div>
+      </div>
+      <div class="efx-body">
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Strength</span>
+            <input type="number" class="ctrl-num" id="n-bls" value="0.3" step="0.05">
+          </div><input type="range" id="s-bls" min="0" max="5" step="0.05" value="0.3"></div>
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Threshold</span>
+            <input type="number" class="ctrl-num" id="n-blt" value="0.85" step="0.05">
+          </div><input type="range" id="s-blt" min="0" max="2" step="0.05" value="0.85"></div>
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Radius</span>
+            <input type="number" class="ctrl-num" id="n-blr" value="0.4" step="0.05">
+          </div><input type="range" id="s-blr" min="0" max="2" step="0.05" value="0.4"></div>
+      </div>
+    </div>
+
+    <!-- Film Grain -->
+    <div class="efx" id="efx-grain">
+      <div class="efx-head" onclick="toggleEfx('grain')">
+        <span class="efx-title">Film Grain</span>
+        <div class="efx-right">
+          <label class="tog" onclick="event.stopPropagation()">
+            <input type="checkbox" id="e-grain">
+            <span class="tog-track"></span>
+          </label>
+          <span class="efx-chevron">▾</span>
+        </div>
+      </div>
+      <div class="efx-body">
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Intensity</span>
+            <input type="number" class="ctrl-num" id="n-grn" value="0.04" step="0.005">
+          </div><input type="range" id="s-grn" min="0" max="0.4" step="0.005" value="0.04"></div>
+      </div>
+    </div>
+
+    <!-- Chromatic Aberration -->
+    <div class="efx" id="efx-ca">
+      <div class="efx-head" onclick="toggleEfx('ca')">
+        <span class="efx-title">Chromatic Aberration</span>
+        <div class="efx-right">
+          <label class="tog" onclick="event.stopPropagation()">
+            <input type="checkbox" id="e-ca">
+            <span class="tog-track"></span>
+          </label>
+          <span class="efx-chevron">▾</span>
+        </div>
+      </div>
+      <div class="efx-body">
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Amount</span>
+            <input type="number" class="ctrl-num" id="n-ca" value="0.003" step="0.001">
+          </div><input type="range" id="s-ca" min="0" max="0.05" step="0.001" value="0.003"></div>
+      </div>
+    </div>
+
+    <!-- Vignette -->
+    <div class="efx" id="efx-vig">
+      <div class="efx-head" onclick="toggleEfx('vig')">
+        <span class="efx-title">Vignette</span>
+        <div class="efx-right">
+          <label class="tog" onclick="event.stopPropagation()">
+            <input type="checkbox" id="e-vig">
+            <span class="tog-track"></span>
+          </label>
+          <span class="efx-chevron">▾</span>
+        </div>
+      </div>
+      <div class="efx-body">
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Offset</span>
+            <input type="number" class="ctrl-num" id="n-vo" value="0.95" step="0.05">
+          </div><input type="range" id="s-vo" min="0.1" max="2" step="0.05" value="0.95"></div>
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Darkness</span>
+            <input type="number" class="ctrl-num" id="n-vd" value="1.5" step="0.1">
+          </div><input type="range" id="s-vd" min="0" max="5" step="0.1" value="1.5"></div>
+      </div>
+    </div>
+
+  </div><!-- /panel -->
 
   <script type="importmap">
   {
@@ -118,6 +282,7 @@
     import { EffectComposer }  from 'three/addons/postprocessing/EffectComposer.js';
     import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { ShaderPass }      from 'three/addons/postprocessing/ShaderPass.js';
     import { OutputPass }      from 'three/addons/postprocessing/OutputPass.js';
 
     // ── Renderer ────────────────────────────────────────────────
@@ -148,7 +313,6 @@
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(6, 5, 8);
 
-    // ── Controls ────────────────────────────────────────────────
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
@@ -166,9 +330,9 @@
     dirLight.shadow.mapSize.set(2048, 2048);
     dirLight.shadow.camera.near = 0.5;
     dirLight.shadow.camera.far = 40;
-    dirLight.shadow.camera.left = -10;
+    dirLight.shadow.camera.left  = -10;
     dirLight.shadow.camera.right = 10;
-    dirLight.shadow.camera.top = 10;
+    dirLight.shadow.camera.top   = 10;
     dirLight.shadow.camera.bottom = -10;
     dirLight.shadow.bias = -0.001;
     scene.add(dirLight);
@@ -177,7 +341,6 @@
     fillLight.position.set(-5, 3, -3);
     scene.add(fillLight);
 
-    // ── Bounce lights (simulate indirect bounced light) ─────────
     const bounceWarm = new THREE.PointLight(0xff8844, 0.4, 18);
     bounceWarm.position.set(-7, 2.5, 0);
     scene.add(bounceWarm);
@@ -191,97 +354,168 @@
     scene.add(bounceBack);
 
     // ── Ground ──────────────────────────────────────────────────
-    const groundGeo = new THREE.PlaneGeometry(30, 30);
-    const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x1a1a3a, roughness: 0.9, metalness: 0.1,
-    });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(30, 30),
+      new THREE.MeshStandardMaterial({ color: 0x1a1a3a, roughness: 0.9, metalness: 0.1 })
+    );
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // ── Grid ────────────────────────────────────────────────────
     const grid = new THREE.GridHelper(30, 30, 0x333366, 0x222244);
     grid.material.opacity = 0.4;
     grid.material.transparent = true;
     scene.add(grid);
 
     // ── Bounce reflector panels ─────────────────────────────────
-    // Large emissive panels placed around the scene – they simulate
-    // large-area indirect light sources (like photography reflectors).
     const reflGeo = new THREE.PlaneGeometry(8, 5);
+    const reflMats = [];
 
-    const leftReflMat = new THREE.MeshStandardMaterial({
-      color: 0x221100, emissive: 0xff8844, emissiveIntensity: 0.15,
-      roughness: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.25,
-    });
-    const leftRefl = new THREE.Mesh(reflGeo, leftReflMat);
-    leftRefl.position.set(-9, 3, 0);
-    leftRefl.rotation.y = Math.PI / 2;
-    scene.add(leftRefl);
+    function addPanel(px, py, pz, ry, emissiveHex) {
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x111111, emissive: new THREE.Color(emissiveHex),
+        emissiveIntensity: 0.15, roughness: 0.6,
+        side: THREE.DoubleSide, transparent: true, opacity: 0.25,
+      });
+      const mesh = new THREE.Mesh(reflGeo, mat);
+      mesh.position.set(px, py, pz);
+      mesh.rotation.y = ry;
+      scene.add(mesh);
+      reflMats.push(mat);
+    }
 
-    const rightReflMat = new THREE.MeshStandardMaterial({
-      color: 0x001122, emissive: 0x4466ff, emissiveIntensity: 0.15,
-      roughness: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.25,
-    });
-    const rightRefl = new THREE.Mesh(reflGeo, rightReflMat);
-    rightRefl.position.set(9, 3, 0);
-    rightRefl.rotation.y = -Math.PI / 2;
-    scene.add(rightRefl);
+    addPanel(-9, 3, 0,  Math.PI / 2, 0xff8844);
+    addPanel( 9, 3, 0, -Math.PI / 2, 0x4466ff);
+    addPanel( 0, 3, -11, 0,          0xaabbcc);
 
-    const backReflMat = new THREE.MeshStandardMaterial({
-      color: 0x111111, emissive: 0xaabbcc, emissiveIntensity: 0.10,
-      roughness: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.20,
-    });
-    const backRefl = new THREE.Mesh(reflGeo, backReflMat);
-    backRefl.position.set(0, 3, -11);
-    scene.add(backRefl);
+    const bounceLights = [bounceWarm, bounceCool, bounceBack];
 
-    const reflectorMats  = [leftReflMat, rightReflMat, backReflMat];
-    const bounceLights   = [bounceWarm, bounceCool, bounceBack];
-
-    // ── Cube (PBR) ──────────────────────────────────────────────
-    const cubeGeo = new THREE.BoxGeometry(2, 2, 2);
-    const cubeMat = new THREE.MeshStandardMaterial({
-      color: 0x4361ee, roughness: 0.3, metalness: 0.7,
-    });
-    const cube = new THREE.Mesh(cubeGeo, cubeMat);
+    // ── Objects ─────────────────────────────────────────────────
+    const cube = new THREE.Mesh(
+      new THREE.BoxGeometry(2, 2, 2),
+      new THREE.MeshStandardMaterial({ color: 0x4361ee, roughness: 0.3, metalness: 0.7 })
+    );
     cube.position.set(-2, 1, 0);
-    cube.castShadow = true;
-    cube.receiveShadow = true;
+    cube.castShadow = true; cube.receiveShadow = true;
     scene.add(cube);
 
-    // ── Sphere ──────────────────────────────────────────────────
-    const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
-    const sphereMat = new THREE.MeshStandardMaterial({
-      color: 0x2ec4b6, roughness: 0.2, metalness: 0.5, emissive: 0x0a3330,
-    });
-    const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+    const sphere = new THREE.Mesh(
+      new THREE.SphereGeometry(1, 64, 64),
+      new THREE.MeshStandardMaterial({
+        color: 0x2ec4b6, roughness: 0.2, metalness: 0.5, emissive: 0x0a3330
+      })
+    );
     sphere.position.set(2, 1, 0);
-    sphere.castShadow = true;
-    sphere.receiveShadow = true;
+    sphere.castShadow = true; sphere.receiveShadow = true;
     scene.add(sphere);
 
-    // ── Torus ───────────────────────────────────────────────────
-    const torusGeo = new THREE.TorusGeometry(0.8, 0.3, 32, 100);
-    const torusMat = new THREE.MeshStandardMaterial({
-      color: 0xf4a261, roughness: 0.4, metalness: 0.6,
-    });
-    const torus = new THREE.Mesh(torusGeo, torusMat);
+    const torus = new THREE.Mesh(
+      new THREE.TorusGeometry(0.8, 0.3, 32, 100),
+      new THREE.MeshStandardMaterial({ color: 0xf4a261, roughness: 0.4, metalness: 0.6 })
+    );
     torus.position.set(0, 1, -3);
     torus.castShadow = true;
     scene.add(torus);
 
-    // ── Post-processing (Bloom) ─────────────────────────────────
+    // ── Custom shader passes ─────────────────────────────────────
+
+    // Film Grain
+    const GrainShader = {
+      uniforms: {
+        tDiffuse: { value: null },
+        amount:   { value: 0.04 },
+        time:     { value: 0.0 },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+      `,
+      fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform float amount;
+        uniform float time;
+        varying vec2 vUv;
+        float rand(vec2 co) {
+          return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+        }
+        void main() {
+          vec4 c = texture2D(tDiffuse, vUv);
+          float noise = rand(vUv + fract(time * 0.017)) * 2.0 - 1.0;
+          gl_FragColor = vec4(clamp(c.rgb + noise * amount, 0.0, 1.0), c.a);
+        }
+      `,
+    };
+
+    // Chromatic Aberration
+    const CAShader = {
+      uniforms: {
+        tDiffuse: { value: null },
+        amount:   { value: 0.003 },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+      `,
+      fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform float amount;
+        varying vec2 vUv;
+        void main() {
+          vec2 d = (vUv - 0.5) * amount;
+          float r = texture2D(tDiffuse, vUv + d).r;
+          float g = texture2D(tDiffuse, vUv    ).g;
+          float b = texture2D(tDiffuse, vUv - d).b;
+          gl_FragColor = vec4(r, g, b, 1.0);
+        }
+      `,
+    };
+
+    // Vignette
+    const VignetteShader = {
+      uniforms: {
+        tDiffuse:  { value: null },
+        offset:    { value: 0.95 },
+        darkness:  { value: 1.5 },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+      `,
+      fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform float offset;
+        uniform float darkness;
+        varying vec2 vUv;
+        void main() {
+          vec4 c = texture2D(tDiffuse, vUv);
+          vec2 uv = (vUv - 0.5) * 2.0;
+          float v = 1.0 - smoothstep(offset * 0.7, offset, dot(uv, uv) * darkness * 0.5);
+          gl_FragColor = vec4(c.rgb * v, c.a);
+        }
+      `,
+    };
+
+    // ── Composer ────────────────────────────────────────────────
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
+
     const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.30,  // strength
-      0.4,   // radius
-      0.85   // threshold
+      new THREE.Vector2(window.innerWidth, window.innerHeight), 0.3, 0.4, 0.85
     );
     composer.addPass(bloomPass);
+
+    const grainPass = new ShaderPass(GrainShader);
+    grainPass.enabled = false;
+    composer.addPass(grainPass);
+
+    const caPass = new ShaderPass(CAShader);
+    caPass.enabled = false;
+    composer.addPass(caPass);
+
+    const vigPass = new ShaderPass(VignetteShader);
+    vigPass.enabled = false;
+    composer.addPass(vigPass);
+
     composer.addPass(new OutputPass());
 
     // ── Resize ──────────────────────────────────────────────────
@@ -294,51 +528,78 @@
 
     // ── Animation loop ──────────────────────────────────────────
     const clock = new THREE.Clock();
-
     function animate() {
       requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
-
-      cube.rotation.x = t * 0.6;
-      cube.rotation.y = t * 0.9;
-
+      cube.rotation.x   = t * 0.6;
+      cube.rotation.y   = t * 0.9;
       sphere.position.y = 1 + Math.abs(Math.sin(t * 1.8)) * 2;
-
-      torus.rotation.x = t * 0.7;
-      torus.rotation.z = t * 0.4;
-
+      torus.rotation.x  = t * 0.7;
+      torus.rotation.z  = t * 0.4;
+      grainPass.uniforms.time.value = t;
       controls.update();
       composer.render();
     }
     animate();
 
-    // ── Slider panel ────────────────────────────────────────────
-    const panel = document.getElementById('panel');
+    // ── UI helpers ───────────────────────────────────────────────
+    window.toggleEfx = function(id) {
+      document.getElementById('efx-' + id).classList.toggle('collapsed');
+    };
+
     document.getElementById('panel-toggle').addEventListener('click', () => {
-      panel.classList.toggle('open');
+      document.getElementById('panel').classList.toggle('open');
     });
 
-    function bindSlider(id, cb) {
-      const el = document.getElementById('s-' + id);
-      const vEl = document.getElementById('v-' + id);
-      el.addEventListener('input', () => {
-        const v = parseFloat(el.value);
-        vEl.textContent = v.toFixed(2);
+    /** Sync slider ↔ number input, call cb(value). Number input has no range limit. */
+    function bindControl(id, cb) {
+      const s = document.getElementById('s-' + id);
+      const n = document.getElementById('n-' + id);
+      function set(raw) {
+        const v = parseFloat(raw);
+        if (isNaN(v)) return;
+        n.value = v;
+        s.value = v; // HTML clamps to slider [min,max] automatically
         cb(v);
-      });
+      }
+      s.addEventListener('input',  () => set(s.value));
+      n.addEventListener('change', () => set(n.value));
+      n.addEventListener('keydown', e => { if (e.key === 'Enter') set(n.value); });
     }
 
-    bindSlider('ibl', v => { scene.environmentIntensity = v; });
-    bindSlider('dir', v => { dirLight.intensity = v; });
-    bindSlider('fill', v => { fillLight.intensity = v; });
-    bindSlider('amb', v => { ambient.intensity = v; });
-    bindSlider('bem', v => { reflectorMats.forEach(m => m.emissiveIntensity = v); });
-    bindSlider('bli', v => { bounceLights.forEach(l => l.intensity = v); });
-    bindSlider('fn',  v => { scene.fog.near = v; });
-    bindSlider('ff',  v => { scene.fog.far = v; });
-    bindSlider('exp', v => { renderer.toneMappingExposure = v; });
-    bindSlider('bls', v => { bloomPass.strength = v; });
-    bindSlider('blt', v => { bloomPass.threshold = v; });
+    function bindToggle(id, cb) {
+      const el = document.getElementById('e-' + id);
+      el.addEventListener('change', () => cb(el.checked));
+    }
+
+    // Lights
+    bindControl('ibl',  v => { scene.environmentIntensity = v; });
+    bindControl('dir',  v => { dirLight.intensity = v; });
+    bindControl('fill', v => { fillLight.intensity = v; });
+    bindControl('amb',  v => { ambient.intensity = v; });
+    bindControl('bem',  v => { reflMats.forEach(m => m.emissiveIntensity = v); });
+    bindControl('bli',  v => { bounceLights.forEach(l => l.intensity = v); });
+    // Atmosphere
+    bindControl('fn',   v => { scene.fog.near = v; });
+    bindControl('ff',   v => { scene.fog.far  = v; });
+    // Post
+    bindControl('exp',  v => { renderer.toneMappingExposure = v; });
+    // Bloom
+    bindToggle('bloom', v => { bloomPass.enabled = v; });
+    bindControl('bls',  v => { bloomPass.strength  = v; });
+    bindControl('blt',  v => { bloomPass.threshold = v; });
+    bindControl('blr',  v => { bloomPass.radius    = v; });
+    // Grain
+    bindToggle('grain', v => { grainPass.enabled = v; });
+    bindControl('grn',  v => { grainPass.uniforms.amount.value = v; });
+    // Chromatic Aberration
+    bindToggle('ca', v => { caPass.enabled = v; });
+    bindControl('ca', v => { caPass.uniforms.amount.value = v; });
+    // Vignette
+    bindToggle('vig', v => { vigPass.enabled = v; });
+    bindControl('vo',  v => { vigPass.uniforms.offset.value   = v; });
+    bindControl('vd',  v => { vigPass.uniforms.darkness.value = v; });
+
   </script>
 </body>
 </html>
