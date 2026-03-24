@@ -276,7 +276,8 @@
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
     import { ShaderPass }      from 'three/addons/postprocessing/ShaderPass.js';
     import { OutputPass }      from 'three/addons/postprocessing/OutputPass.js';
-    import { WebGLPathTracer } from 'three-gpu-pathtracer';
+    // three-gpu-pathtracer jest ładowany dynamicznie w initPathTracer()
+    // żeby błąd sieci/wersji nie blokował całego modułu
 
     // ── Renderer ────────────────────────────────────────────────
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -441,15 +442,35 @@
 
     async function initPathTracer() {
       if (pathTracer) { pathTracer.reset(); return; }
-      ptOverlay.textContent = 'Budowanie BVH…';
       ptOverlay.style.display = 'block';
+      ptOverlay.textContent = 'Ładowanie biblioteki PT…';
 
-      pathTracer = new WebGLPathTracer(renderer);
-      pathTracer.renderScale = ptRenderScale;
-      // setScene builds the BVH – may be async in some versions
-      await Promise.resolve(pathTracer.setScene(scene, camera));
+      let WebGLPathTracer;
+      try {
+        ({ WebGLPathTracer } = await import('three-gpu-pathtracer'));
+      } catch (e) {
+        ptOverlay.textContent = 'Błąd: nie można załadować three-gpu-pathtracer. ' + e.message;
+        console.error('three-gpu-pathtracer load error:', e);
+        ptMode = false;
+        document.getElementById('btn-rt').classList.add('active');
+        document.getElementById('btn-pt').classList.remove('active');
+        return;
+      }
 
-      ptOverlay.textContent = '';
+      ptOverlay.textContent = 'Budowanie BVH…';
+      try {
+        pathTracer = new WebGLPathTracer(renderer);
+        pathTracer.renderScale = ptRenderScale;
+        await Promise.resolve(pathTracer.setScene(scene, camera));
+        ptOverlay.textContent = '';
+      } catch (e) {
+        ptOverlay.textContent = 'Błąd inicjalizacji PT: ' + e.message;
+        console.error('PathTracer init error:', e);
+        pathTracer = null;
+        ptMode = false;
+        document.getElementById('btn-rt').classList.add('active');
+        document.getElementById('btn-pt').classList.remove('active');
+      }
     }
 
     // Reset PT accumulation whenever the camera changes (damped orbit)
