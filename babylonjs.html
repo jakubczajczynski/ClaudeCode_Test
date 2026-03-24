@@ -15,7 +15,7 @@
       border: 1px solid rgba(255,255,255,.15); color: #fff;
       padding: 10px 24px; border-radius: 30px;
       font-family: 'Segoe UI', sans-serif; font-size: 1rem;
-      letter-spacing: .04em; pointer-events: none;
+      letter-spacing: .04em; pointer-events: none; white-space: nowrap;
     }
     #label span { color: #f4a261; font-weight: 700; }
 
@@ -35,104 +35,314 @@
       font-size: 0.8rem; pointer-events: none;
     }
 
-    /* ── Control panel ──────────────────────────────────────── */
+    /* ── Panel toggle ───────────────────────────────────────── */
     #panel-toggle {
       position: fixed; top: 20px; right: 20px; z-index: 20;
-      width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.15);
+      width: 40px; height: 40px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.15);
       background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
       color: #fff; font-size: 1.2rem; cursor: pointer; transition: background .2s;
     }
-    #panel-toggle:hover { background: rgba(255,255,255,.16); }
+    #panel-toggle:hover { background: rgba(255,255,255,.18); }
 
+    /* ── Side panel ─────────────────────────────────────────── */
     #panel {
       position: fixed; top: 0; right: 0; z-index: 15;
-      width: 280px; height: 100vh; overflow-y: auto;
-      background: rgba(10,10,30,.85); backdrop-filter: blur(14px);
-      border-left: 1px solid rgba(255,255,255,.1);
-      padding: 70px 18px 30px; transform: translateX(100%);
-      transition: transform .3s ease; font-family: 'Segoe UI', sans-serif;
+      width: 290px; height: 100vh; overflow-y: auto;
+      background: rgba(8,8,24,.88); backdrop-filter: blur(14px);
+      border-left: 1px solid rgba(255,255,255,.09);
+      padding: 68px 16px 40px;
+      transform: translateX(100%); transition: transform .28s ease;
+      font-family: 'Segoe UI', sans-serif;
+      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.15) transparent;
     }
     #panel.open { transform: translateX(0); }
-    #panel h3 { color: #f4a261; font-size: .85rem; text-transform: uppercase;
-      letter-spacing: .08em; margin: 18px 0 10px; }
-    #panel h3:first-child { margin-top: 0; }
 
-    .ctrl { margin-bottom: 10px; }
-    .ctrl label { display: flex; justify-content: space-between; color: rgba(255,255,255,.7);
-      font-size: .78rem; margin-bottom: 3px; }
-    .ctrl label b { color: #fff; font-variant-numeric: tabular-nums; min-width: 36px; text-align: right; }
-    .ctrl input[type=range] { width: 100%; accent-color: #f4a261; height: 4px; }
+    .sec { color: #f4a261; font-size: .72rem; text-transform: uppercase;
+      letter-spacing: .1em; margin: 20px 0 8px;
+      border-bottom: 1px solid rgba(244,162,97,.18); padding-bottom: 4px; }
+    .sec:first-child { margin-top: 0; }
+
+    .ctrl { margin-bottom: 11px; }
+    .ctrl-row { display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 3px; gap: 6px; }
+    .ctrl-name { color: rgba(255,255,255,.65); font-size: .76rem; flex: 1; }
+    .ctrl-num {
+      width: 66px; padding: 2px 6px; text-align: right;
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14);
+      border-radius: 5px; color: #fff; font-size: .76rem; font-family: inherit;
+      outline: none; transition: border-color .15s;
+    }
+    .ctrl-num:focus { border-color: rgba(244,162,97,.5); }
+    .ctrl-num::-webkit-inner-spin-button,
+    .ctrl-num::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .ctrl-num[type=number] { -moz-appearance: textfield; }
+    .ctrl input[type=range] { width: 100%; accent-color: #f4a261; height: 4px; cursor: pointer; }
+
+    .efx { margin-bottom: 4px; border: 1px solid rgba(255,255,255,.07);
+      border-radius: 8px; overflow: hidden; }
+    .efx-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 10px; background: rgba(255,255,255,.04); cursor: pointer;
+      user-select: none;
+    }
+    .efx-head:hover { background: rgba(255,255,255,.07); }
+    .efx-title { color: #fff; font-size: .8rem; font-weight: 600; }
+    .efx-right { display: flex; align-items: center; gap: 8px; }
+    .efx-chevron { color: rgba(255,255,255,.4); font-size: .7rem; transition: transform .2s; }
+    .efx.collapsed .efx-chevron { transform: rotate(-90deg); }
+    .efx-body { padding: 8px 10px 4px; }
+    .efx.collapsed .efx-body { display: none; }
+
+    .tog { position: relative; display: inline-block;
+      width: 34px; height: 20px; flex-shrink: 0; cursor: pointer; }
+    .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .tog-track { position: absolute; inset: 0; border-radius: 10px;
+      background: rgba(255,255,255,.2); transition: background .18s; }
+    .tog-track::after { content: ''; position: absolute;
+      width: 14px; height: 14px; left: 3px; top: 3px;
+      background: #fff; border-radius: 50%; transition: left .18s; }
+    .tog input:checked ~ .tog-track { background: #f4a261; }
+    .tog input:checked ~ .tog-track::after { left: 17px; }
   </style>
 </head>
 <body>
   <canvas id="renderCanvas"></canvas>
   <a href="index.html" id="back">← Wróć</a>
-  <div id="label">Scena 3D – <span>Babylon.js</span> &nbsp;<small style="opacity:.55;font-size:.78em">IBL + SSAO / GI</small></div>
-  <div id="info">Lewy przycisk myszy: obrót &nbsp;|&nbsp; Kółko: zoom &nbsp;|&nbsp; Prawy przycisk: przesunięcie</div>
+  <div id="label">Scena 3D – <span>Babylon.js</span> &nbsp;<small style="opacity:.5;font-size:.76em">IBL + SSAO / GI + Post-FX</small></div>
+  <div id="info">LPM: obrót &nbsp;|&nbsp; kółko: zoom &nbsp;|&nbsp; PPM: przesunięcie</div>
+  <button id="panel-toggle" title="Ustawienia">⚙</button>
 
-  <button id="panel-toggle" title="Ustawienia GI">⚙</button>
   <div id="panel">
-    <h3>Oświetlenie</h3>
-    <div class="ctrl"><label>IBL Intensity <b id="v-ibl">0.60</b></label>
-      <input type="range" min="0" max="3" step="0.05" value="0.6" id="s-ibl"></div>
-    <div class="ctrl"><label>Dir Light <b id="v-dir">2.50</b></label>
-      <input type="range" min="0" max="5" step="0.1" value="2.5" id="s-dir"></div>
-    <div class="ctrl"><label>Fill Light <b id="v-fill">0.80</b></label>
-      <input type="range" min="0" max="3" step="0.05" value="0.8" id="s-fill"></div>
-    <div class="ctrl"><label>Ambient <b id="v-amb">0.15</b></label>
-      <input type="range" min="0" max="1" step="0.01" value="0.15" id="s-amb"></div>
 
-    <h3>Bounce Panels</h3>
-    <div class="ctrl"><label>Panel Emissive <b id="v-bem">0.15</b></label>
-      <input type="range" min="0" max="1" step="0.01" value="0.15" id="s-bem"></div>
-    <div class="ctrl"><label>Bounce Lights <b id="v-bli">0.40</b></label>
-      <input type="range" min="0" max="2" step="0.05" value="0.40" id="s-bli"></div>
+    <div class="sec">Oświetlenie</div>
 
-    <h3>Atmosfera</h3>
-    <div class="ctrl"><label>Fog Near <b id="v-fn">20</b></label>
-      <input type="range" min="3" max="50" step="1" value="20" id="s-fn"></div>
-    <div class="ctrl"><label>Fog Far <b id="v-ff">60</b></label>
-      <input type="range" min="15" max="120" step="1" value="60" id="s-ff"></div>
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">IBL Intensity</span>
+        <input type="number" class="ctrl-num" id="n-ibl" value="0.6" step="0.1">
+      </div><input type="range" id="s-ibl" min="0" max="20" step="0.1" value="0.6"></div>
 
-    <h3>Post-processing</h3>
-    <div class="ctrl"><label>Exposure <b id="v-exp">1.20</b></label>
-      <input type="range" min="0.2" max="4" step="0.05" value="1.2" id="s-exp"></div>
-    <div class="ctrl"><label>SSAO Strength <b id="v-ssao">1.40</b></label>
-      <input type="range" min="0" max="3" step="0.05" value="1.4" id="s-ssao"></div>
-    <div class="ctrl"><label>SSAO Radius <b id="v-ssaor">3.50</b></label>
-      <input type="range" min="0.5" max="10" step="0.25" value="3.5" id="s-ssaor"></div>
-    <div class="ctrl"><label>Bloom Weight <b id="v-blw">0.25</b></label>
-      <input type="range" min="0" max="1" step="0.02" value="0.25" id="s-blw"></div>
-    <div class="ctrl"><label>Bloom Threshold <b id="v-blt">0.75</b></label>
-      <input type="range" min="0" max="2" step="0.05" value="0.75" id="s-blt"></div>
-  </div>
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Dir Light</span>
+        <input type="number" class="ctrl-num" id="n-dir" value="2.5" step="0.5">
+      </div><input type="range" id="s-dir" min="0" max="30" step="0.5" value="2.5"></div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Fill Light</span>
+        <input type="number" class="ctrl-num" id="n-fill" value="0.8" step="0.1">
+      </div><input type="range" id="s-fill" min="0" max="15" step="0.1" value="0.8"></div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Ambient</span>
+        <input type="number" class="ctrl-num" id="n-amb" value="0.15" step="0.05">
+      </div><input type="range" id="s-amb" min="0" max="5" step="0.05" value="0.15"></div>
+
+    <div class="sec">Bounce Panels</div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Panel Emissive</span>
+        <input type="number" class="ctrl-num" id="n-bem" value="0.15" step="0.05">
+      </div><input type="range" id="s-bem" min="0" max="5" step="0.05" value="0.15"></div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Bounce Lights</span>
+        <input type="number" class="ctrl-num" id="n-bli" value="0.4" step="0.1">
+      </div><input type="range" id="s-bli" min="0" max="10" step="0.1" value="0.4"></div>
+
+    <div class="sec">Atmosfera</div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Fog Near</span>
+        <input type="number" class="ctrl-num" id="n-fn" value="20" step="1">
+      </div><input type="range" id="s-fn" min="1" max="60" step="1" value="20"></div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Fog Far</span>
+        <input type="number" class="ctrl-num" id="n-ff" value="60" step="5">
+      </div><input type="range" id="s-ff" min="10" max="200" step="5" value="60"></div>
+
+    <div class="sec">Post-processing</div>
+
+    <div class="ctrl"><div class="ctrl-row">
+        <span class="ctrl-name">Exposure</span>
+        <input type="number" class="ctrl-num" id="n-exp" value="1.2" step="0.1">
+      </div><input type="range" id="s-exp" min="0" max="10" step="0.1" value="1.2"></div>
+
+    <!-- SSAO -->
+    <div class="efx" id="efx-ssao">
+      <div class="efx-head" onclick="toggleEfx('ssao')">
+        <span class="efx-title">SSAO</span>
+        <div class="efx-right">
+          <label class="tog" onclick="event.stopPropagation()">
+            <input type="checkbox" id="e-ssao" checked>
+            <span class="tog-track"></span>
+          </label>
+          <span class="efx-chevron">▾</span>
+        </div>
+      </div>
+      <div class="efx-body">
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Strength</span>
+            <input type="number" class="ctrl-num" id="n-ssaos" value="1.4" step="0.1">
+          </div><input type="range" id="s-ssaos" min="0" max="5" step="0.05" value="1.4"></div>
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Radius</span>
+            <input type="number" class="ctrl-num" id="n-ssaor" value="3.5" step="0.25">
+          </div><input type="range" id="s-ssaor" min="0.5" max="20" step="0.25" value="3.5"></div>
+      </div>
+    </div>
+
+    <!-- Bloom -->
+    <div class="efx" id="efx-bloom">
+      <div class="efx-head" onclick="toggleEfx('bloom')">
+        <span class="efx-title">Bloom</span>
+        <div class="efx-right">
+          <label class="tog" onclick="event.stopPropagation()">
+            <input type="checkbox" id="e-bloom" checked>
+            <span class="tog-track"></span>
+          </label>
+          <span class="efx-chevron">▾</span>
+        </div>
+      </div>
+      <div class="efx-body">
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Weight</span>
+            <input type="number" class="ctrl-num" id="n-blw" value="0.25" step="0.05">
+          </div><input type="range" id="s-blw" min="0" max="3" step="0.05" value="0.25"></div>
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Threshold</span>
+            <input type="number" class="ctrl-num" id="n-blt" value="0.75" step="0.05">
+          </div><input type="range" id="s-blt" min="0" max="2" step="0.05" value="0.75"></div>
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Kernel</span>
+            <input type="number" class="ctrl-num" id="n-blk" value="64" step="16">
+          </div><input type="range" id="s-blk" min="16" max="256" step="16" value="64"></div>
+      </div>
+    </div>
+
+    <!-- Film Grain -->
+    <div class="efx" id="efx-grain">
+      <div class="efx-head" onclick="toggleEfx('grain')">
+        <span class="efx-title">Film Grain</span>
+        <div class="efx-right">
+          <label class="tog" onclick="event.stopPropagation()">
+            <input type="checkbox" id="e-grain">
+            <span class="tog-track"></span>
+          </label>
+          <span class="efx-chevron">▾</span>
+        </div>
+      </div>
+      <div class="efx-body">
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Intensity</span>
+            <input type="number" class="ctrl-num" id="n-grni" value="10" step="1">
+          </div><input type="range" id="s-grni" min="0" max="80" step="1" value="10"></div>
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Animated</span>
+            <label class="tog" style="margin-left:auto">
+              <input type="checkbox" id="e-grna" checked>
+              <span class="tog-track"></span>
+            </label>
+          </div></div>
+      </div>
+    </div>
+
+    <!-- Chromatic Aberration -->
+    <div class="efx" id="efx-ca">
+      <div class="efx-head" onclick="toggleEfx('ca')">
+        <span class="efx-title">Chromatic Aberration</span>
+        <div class="efx-right">
+          <label class="tog" onclick="event.stopPropagation()">
+            <input type="checkbox" id="e-ca">
+            <span class="tog-track"></span>
+          </label>
+          <span class="efx-chevron">▾</span>
+        </div>
+      </div>
+      <div class="efx-body">
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Amount</span>
+            <input type="number" class="ctrl-num" id="n-ca" value="30" step="5">
+          </div><input type="range" id="s-ca" min="0" max="200" step="5" value="30"></div>
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Radial Intensity</span>
+            <input type="number" class="ctrl-num" id="n-cari" value="1" step="0.1">
+          </div><input type="range" id="s-cari" min="0" max="5" step="0.1" value="1"></div>
+      </div>
+    </div>
+
+    <!-- Vignette -->
+    <div class="efx" id="efx-vig">
+      <div class="efx-head" onclick="toggleEfx('vig')">
+        <span class="efx-title">Vignette</span>
+        <div class="efx-right">
+          <label class="tog" onclick="event.stopPropagation()">
+            <input type="checkbox" id="e-vig">
+            <span class="tog-track"></span>
+          </label>
+          <span class="efx-chevron">▾</span>
+        </div>
+      </div>
+      <div class="efx-body">
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Weight</span>
+            <input type="number" class="ctrl-num" id="n-vw" value="2" step="0.1">
+          </div><input type="range" id="s-vw" min="0" max="8" step="0.1" value="2"></div>
+      </div>
+    </div>
+
+    <!-- Sharpen -->
+    <div class="efx" id="efx-sharp">
+      <div class="efx-head" onclick="toggleEfx('sharp')">
+        <span class="efx-title">Sharpening</span>
+        <div class="efx-right">
+          <label class="tog" onclick="event.stopPropagation()">
+            <input type="checkbox" id="e-sharp">
+            <span class="tog-track"></span>
+          </label>
+          <span class="efx-chevron">▾</span>
+        </div>
+      </div>
+      <div class="efx-body">
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Edge Amount</span>
+            <input type="number" class="ctrl-num" id="n-she" value="0.3" step="0.05">
+          </div><input type="range" id="s-she" min="0" max="3" step="0.05" value="0.3"></div>
+        <div class="ctrl"><div class="ctrl-row">
+            <span class="ctrl-name">Color Amount</span>
+            <input type="number" class="ctrl-num" id="n-shc" value="1" step="0.05">
+          </div><input type="range" id="s-shc" min="0" max="2" step="0.05" value="1"></div>
+      </div>
+    </div>
+
+  </div><!-- /panel -->
 
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-
   <script>
     const canvas = document.getElementById('renderCanvas');
-    const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+    const engine = new BABYLON.Engine(canvas, true, {
+      preserveDrawingBuffer: true, stencil: true
+    });
 
-    // These will be referenced by slider callbacks
-    let dirLight, fillLight, hemi, ssao, pipeline;
+    let dirLight, fillLight, hemi, ssao, pipeline, scene;
     const bounceLights = [];
     const bounceMats   = [];
 
     function createScene() {
-      const scene = new BABYLON.Scene(engine);
+      scene = new BABYLON.Scene(engine);
       scene.clearColor = new BABYLON.Color4(0.051, 0.051, 0.102, 1);
-      scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;
+      scene.fogMode  = BABYLON.Scene.FOGMODE_LINEAR;
       scene.fogColor = new BABYLON.Color3(0.051, 0.051, 0.102);
       scene.fogStart = 20;
-      scene.fogEnd = 60;
+      scene.fogEnd   = 60;
 
-      // ── IBL ───────────────────────────────────────────────────
+      // ── IBL ─────────────────────────────────────────────────
       scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
         'https://assets.babylonjs.com/environments/environmentSpecular.env', scene
       );
       scene.environmentIntensity = 0.6;
 
-      // ── Camera ────────────────────────────────────────────────
+      // ── Camera ──────────────────────────────────────────────
       const camera = new BABYLON.ArcRotateCamera(
         'cam', -Math.PI / 4, Math.PI / 3.5, 12,
         new BABYLON.Vector3(0, 1, 0), scene
@@ -142,201 +352,233 @@
       camera.upperRadiusLimit = 25;
       camera.panningSensibility = 100;
 
-      // ── Lights ────────────────────────────────────────────────
+      // ── Lights ──────────────────────────────────────────────
       hemi = new BABYLON.HemisphericLight('hemi', new BABYLON.Vector3(0, 1, 0), scene);
-      hemi.intensity = 0.15;
-      hemi.diffuse = new BABYLON.Color3(0.53, 0.6, 0.8);
+      hemi.intensity   = 0.15;
+      hemi.diffuse     = new BABYLON.Color3(0.53, 0.6, 0.8);
       hemi.groundColor = new BABYLON.Color3(0.1, 0.1, 0.2);
 
       dirLight = new BABYLON.DirectionalLight('dir',
         new BABYLON.Vector3(-0.5, -1, -0.4), scene);
-      dirLight.position = new BABYLON.Vector3(8, 12, 6);
+      dirLight.position  = new BABYLON.Vector3(8, 12, 6);
       dirLight.intensity = 2.5;
 
       fillLight = new BABYLON.PointLight('fill', new BABYLON.Vector3(-5, 3, -3), scene);
-      fillLight.diffuse = new BABYLON.Color3(0.27, 0.4, 1);
+      fillLight.diffuse   = new BABYLON.Color3(0.27, 0.4, 1);
       fillLight.intensity = 0.8;
-      fillLight.range = 20;
+      fillLight.range     = 20;
 
-      // ── Bounce lights ─────────────────────────────────────────
-      const bWarm = new BABYLON.PointLight('bWarm', new BABYLON.Vector3(-7, 2.5, 0), scene);
-      bWarm.diffuse = new BABYLON.Color3(1, 0.53, 0.27);
-      bWarm.intensity = 0.4; bWarm.range = 18;
-      bounceLights.push(bWarm);
+      function addBounce(name, pos, diffuse) {
+        const l = new BABYLON.PointLight(name, pos, scene);
+        l.diffuse   = diffuse;
+        l.intensity = 0.4;
+        l.range     = 18;
+        bounceLights.push(l);
+      }
+      addBounce('bWarm', new BABYLON.Vector3(-7, 2.5,  0), new BABYLON.Color3(1, 0.53, 0.27));
+      addBounce('bCool', new BABYLON.Vector3( 7, 2.5,  0), new BABYLON.Color3(0.27, 0.4, 1));
+      addBounce('bBack', new BABYLON.Vector3( 0, 2.5, -9), new BABYLON.Color3(0.67, 0.73, 0.8));
 
-      const bCool = new BABYLON.PointLight('bCool', new BABYLON.Vector3(7, 2.5, 0), scene);
-      bCool.diffuse = new BABYLON.Color3(0.27, 0.4, 1);
-      bCool.intensity = 0.4; bCool.range = 18;
-      bounceLights.push(bCool);
-
-      const bBack = new BABYLON.PointLight('bBack', new BABYLON.Vector3(0, 2.5, -9), scene);
-      bBack.diffuse = new BABYLON.Color3(0.67, 0.73, 0.8);
-      bBack.intensity = 0.3; bBack.range = 18;
-      bounceLights.push(bBack);
-
-      // ── Shadows ───────────────────────────────────────────────
+      // ── Shadows ─────────────────────────────────────────────
       const shadowGen = new BABYLON.ShadowGenerator(2048, dirLight);
       shadowGen.useBlurExponentialShadowMap = true;
       shadowGen.blurKernel = 32;
 
-      // ── Ground ────────────────────────────────────────────────
+      // ── Ground ──────────────────────────────────────────────
       const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 30, height: 30 }, scene);
-      const groundMat = new BABYLON.PBRMaterial('groundMat', scene);
-      groundMat.albedoColor = new BABYLON.Color3(0.102, 0.102, 0.227);
-      groundMat.roughness = 0.95;
-      groundMat.metallic = 0.0;
-      ground.material = groundMat;
+      const gMat   = new BABYLON.PBRMaterial('gMat', scene);
+      gMat.albedoColor = new BABYLON.Color3(0.102, 0.102, 0.227);
+      gMat.roughness = 0.95; gMat.metallic = 0;
+      ground.material = gMat;
       ground.receiveShadows = true;
 
       // Grid
       const gridLines = [];
-      const half = 15, step = 1;
-      for (let i = -half; i <= half; i += step) {
-        gridLines.push([new BABYLON.Vector3(i, 0.01, -half), new BABYLON.Vector3(i, 0.01, half)]);
-        gridLines.push([new BABYLON.Vector3(-half, 0.01, i), new BABYLON.Vector3(half, 0.01, i)]);
+      for (let i = -15; i <= 15; i++) {
+        gridLines.push([new BABYLON.Vector3(i, 0.01, -15), new BABYLON.Vector3(i, 0.01, 15)]);
+        gridLines.push([new BABYLON.Vector3(-15, 0.01, i), new BABYLON.Vector3(15, 0.01, i)]);
       }
       const grid = BABYLON.MeshBuilder.CreateLineSystem('grid', { lines: gridLines }, scene);
       grid.color = new BABYLON.Color3(0.2, 0.2, 0.4);
       grid.alpha = 0.4;
 
-      // ── Bounce reflector panels ───────────────────────────────
-      function makeReflector(name, pos, rotY, emissiveColor, emissiveIntensity) {
-        const plane = BABYLON.MeshBuilder.CreatePlane(name, { width: 8, height: 5 }, scene);
-        plane.position = pos;
-        plane.rotation.y = rotY;
-        const mat = new BABYLON.PBRMaterial(name + 'Mat', scene);
-        mat.albedoColor = new BABYLON.Color3(0.05, 0.05, 0.05);
-        mat.emissiveColor = emissiveColor;
-        mat.emissiveIntensity = emissiveIntensity;
-        mat.roughness = 0.8;
-        mat.metallic = 0;
-        mat.alpha = 0.25;
-        mat.backFaceCulling = false;
-        plane.material = mat;
-        bounceMats.push(mat);
-        return plane;
+      // ── Bounce panels ────────────────────────────────────────
+      function addPanel(name, pos, rotY, emissive) {
+        const p = BABYLON.MeshBuilder.CreatePlane(name, { width: 8, height: 5 }, scene);
+        p.position = pos; p.rotation.y = rotY;
+        const m = new BABYLON.PBRMaterial(name + 'M', scene);
+        m.albedoColor    = new BABYLON.Color3(0.05, 0.05, 0.05);
+        m.emissiveColor  = emissive;
+        m.emissiveIntensity = 0.15;
+        m.roughness = 0.8; m.metallic = 0;
+        m.alpha = 0.25; m.backFaceCulling = false;
+        p.material = m;
+        bounceMats.push(m);
       }
+      addPanel('lRefl', new BABYLON.Vector3(-9, 3,   0),  Math.PI / 2, new BABYLON.Color3(1, 0.53, 0.27));
+      addPanel('rRefl', new BABYLON.Vector3( 9, 3,   0), -Math.PI / 2, new BABYLON.Color3(0.27, 0.4, 1));
+      addPanel('bRefl', new BABYLON.Vector3( 0, 3, -11),  0,           new BABYLON.Color3(0.67, 0.73, 0.8));
 
-      makeReflector('leftRefl',
-        new BABYLON.Vector3(-9, 3, 0), Math.PI / 2,
-        new BABYLON.Color3(1, 0.53, 0.27), 0.15);
-
-      makeReflector('rightRefl',
-        new BABYLON.Vector3(9, 3, 0), -Math.PI / 2,
-        new BABYLON.Color3(0.27, 0.4, 1), 0.15);
-
-      makeReflector('backRefl',
-        new BABYLON.Vector3(0, 3, -11), 0,
-        new BABYLON.Color3(0.67, 0.73, 0.8), 0.10);
-
-      // ── Cube (PBR) ────────────────────────────────────────────
+      // ── Objects ─────────────────────────────────────────────
       const cube = BABYLON.MeshBuilder.CreateBox('cube', { size: 2 }, scene);
       cube.position = new BABYLON.Vector3(-2, 1, 0);
-      const cubeMat = new BABYLON.PBRMaterial('cubeMat', scene);
-      cubeMat.albedoColor = new BABYLON.Color3(0.263, 0.380, 0.933);
-      cubeMat.roughness = 0.3;
-      cubeMat.metallic = 0.7;
-      cube.material = cubeMat;
+      const cM = new BABYLON.PBRMaterial('cM', scene);
+      cM.albedoColor = new BABYLON.Color3(0.263, 0.38, 0.933);
+      cM.roughness = 0.3; cM.metallic = 0.7;
+      cube.material = cM;
       cube.receiveShadows = true;
       shadowGen.addShadowCaster(cube);
 
-      // ── Sphere ────────────────────────────────────────────────
       const sphere = BABYLON.MeshBuilder.CreateSphere('sphere', { diameter: 2, segments: 64 }, scene);
       sphere.position = new BABYLON.Vector3(2, 1, 0);
-      const sphereMat = new BABYLON.PBRMaterial('sphereMat', scene);
-      sphereMat.albedoColor = new BABYLON.Color3(0.18, 0.769, 0.714);
-      sphereMat.roughness = 0.2;
-      sphereMat.metallic = 0.5;
-      sphereMat.emissiveColor = new BABYLON.Color3(0.02, 0.12, 0.12);
-      sphere.material = sphereMat;
+      const sM = new BABYLON.PBRMaterial('sM', scene);
+      sM.albedoColor   = new BABYLON.Color3(0.18, 0.769, 0.714);
+      sM.roughness = 0.2; sM.metallic = 0.5;
+      sM.emissiveColor = new BABYLON.Color3(0.02, 0.12, 0.12);
+      sphere.material = sM;
       sphere.receiveShadows = true;
       shadowGen.addShadowCaster(sphere);
 
-      // ── Torus ─────────────────────────────────────────────────
       const torus = BABYLON.MeshBuilder.CreateTorus('torus',
         { diameter: 1.6, thickness: 0.6, tessellation: 64 }, scene);
       torus.position = new BABYLON.Vector3(0, 1, -3);
-      const torusMat = new BABYLON.PBRMaterial('torusMat', scene);
-      torusMat.albedoColor = new BABYLON.Color3(0.957, 0.635, 0.38);
-      torusMat.roughness = 0.4;
-      torusMat.metallic = 0.6;
-      torus.material = torusMat;
+      const tM = new BABYLON.PBRMaterial('tM', scene);
+      tM.albedoColor = new BABYLON.Color3(0.957, 0.635, 0.38);
+      tM.roughness = 0.4; tM.metallic = 0.6;
+      torus.material = tM;
       torus.receiveShadows = true;
       shadowGen.addShadowCaster(torus);
 
-      // ── Animation ─────────────────────────────────────────────
+      // ── Animation ────────────────────────────────────────────
       let t = 0;
       scene.registerBeforeRender(() => {
         t += engine.getDeltaTime() / 1000;
-        cube.rotation.x = t * 0.6;
-        cube.rotation.y = t * 0.9;
+        cube.rotation.x   = t * 0.6;
+        cube.rotation.y   = t * 0.9;
         sphere.position.y = 1 + Math.abs(Math.sin(t * 1.8)) * 2;
-        torus.rotation.x = t * 0.7;
-        torus.rotation.z = t * 0.4;
+        torus.rotation.x  = t * 0.7;
+        torus.rotation.z  = t * 0.4;
       });
 
-      // ── SSAO2 ─────────────────────────────────────────────────
+      // ── SSAO2 ────────────────────────────────────────────────
       ssao = new BABYLON.SSAO2RenderingPipeline('ssao', scene, {
         ssaoRatio: 0.5, blurRatio: 1
       });
-      ssao.radius = 3.5;
+      ssao.radius        = 3.5;
       ssao.totalStrength = 1.4;
       ssao.expensiveBlur = true;
-      ssao.samples = 16;
-      ssao.maxZ = 250;
+      ssao.samples       = 16;
+      ssao.maxZ          = 250;
       scene.postProcessRenderPipelineManager
         .attachCamerasToRenderPipeline('ssao', camera);
 
       // ── DefaultRenderingPipeline ──────────────────────────────
-      pipeline = new BABYLON.DefaultRenderingPipeline(
-        'default', true, scene, [camera]
-      );
-      pipeline.bloomEnabled = true;
-      pipeline.bloomThreshold = 0.75;
-      pipeline.bloomWeight = 0.25;
-      pipeline.bloomKernel = 64;
+      pipeline = new BABYLON.DefaultRenderingPipeline('default', true, scene, [camera]);
+      pipeline.bloomEnabled    = true;
+      pipeline.bloomThreshold  = 0.75;
+      pipeline.bloomWeight     = 0.25;
+      pipeline.bloomKernel     = 64;
+
+      pipeline.grainEnabled          = false;
+      pipeline.grain.intensity       = 10;
+      pipeline.grain.animated        = true;
+
+      pipeline.chromaticAberrationEnabled                  = false;
+      pipeline.chromaticAberration.aberrationAmount        = 30;
+      pipeline.chromaticAberration.radialIntensity         = 1;
+
+      pipeline.sharpenEnabled         = false;
+      pipeline.sharpen.edgeAmount     = 0.3;
+      pipeline.sharpen.colorAmount    = 1.0;
+
       pipeline.imageProcessingEnabled = true;
       pipeline.imageProcessing.toneMappingEnabled = true;
       pipeline.imageProcessing.toneMappingType =
         BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
       pipeline.imageProcessing.exposure = 1.2;
+      pipeline.imageProcessing.vignetteEnabled   = false;
+      pipeline.imageProcessing.vignetteWeight    = 2.0;
+      pipeline.imageProcessing.vignetteBlendMode =
+        BABYLON.ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY;
 
       return scene;
     }
 
-    const scene = createScene();
+    scene = createScene();
     engine.runRenderLoop(() => scene.render());
     window.addEventListener('resize', () => engine.resize());
 
-    // ── Slider panel ────────────────────────────────────────────
-    const panel = document.getElementById('panel');
+    // ── UI helpers ───────────────────────────────────────────────
+    window.toggleEfx = function(id) {
+      document.getElementById('efx-' + id).classList.toggle('collapsed');
+    };
+
     document.getElementById('panel-toggle').addEventListener('click', () => {
-      panel.classList.toggle('open');
+      document.getElementById('panel').classList.toggle('open');
     });
 
-    function bindSlider(id, cb) {
-      const el = document.getElementById('s-' + id);
-      const vEl = document.getElementById('v-' + id);
-      el.addEventListener('input', () => {
-        const v = parseFloat(el.value);
-        vEl.textContent = v.toFixed(2);
+    function bindControl(id, cb) {
+      const s = document.getElementById('s-' + id);
+      const n = document.getElementById('n-' + id);
+      function set(raw) {
+        const v = parseFloat(raw);
+        if (isNaN(v)) return;
+        n.value = v;
+        s.value = v;
         cb(v);
-      });
+      }
+      s.addEventListener('input',  () => set(s.value));
+      n.addEventListener('change', () => set(n.value));
+      n.addEventListener('keydown', e => { if (e.key === 'Enter') set(n.value); });
     }
 
-    bindSlider('ibl',   v => { scene.environmentIntensity = v; });
-    bindSlider('dir',   v => { dirLight.intensity = v; });
-    bindSlider('fill',  v => { fillLight.intensity = v; });
-    bindSlider('amb',   v => { hemi.intensity = v; });
-    bindSlider('bem',   v => { bounceMats.forEach(m => m.emissiveIntensity = v); });
-    bindSlider('bli',   v => { bounceLights.forEach(l => l.intensity = v); });
-    bindSlider('fn',    v => { scene.fogStart = v; });
-    bindSlider('ff',    v => { scene.fogEnd = v; });
-    bindSlider('exp',   v => { pipeline.imageProcessing.exposure = v; });
-    bindSlider('ssao',  v => { ssao.totalStrength = v; });
-    bindSlider('ssaor', v => { ssao.radius = v; });
-    bindSlider('blw',   v => { pipeline.bloomWeight = v; });
-    bindSlider('blt',   v => { pipeline.bloomThreshold = v; });
+    function bindToggle(id, cb) {
+      const el = document.getElementById('e-' + id);
+      el.addEventListener('change', () => cb(el.checked));
+    }
+
+    // Lights
+    bindControl('ibl',   v => { scene.environmentIntensity = v; });
+    bindControl('dir',   v => { dirLight.intensity = v; });
+    bindControl('fill',  v => { fillLight.intensity = v; });
+    bindControl('amb',   v => { hemi.intensity = v; });
+    bindControl('bem',   v => { bounceMats.forEach(m => m.emissiveIntensity = v); });
+    bindControl('bli',   v => { bounceLights.forEach(l => l.intensity = v); });
+    // Atmosphere
+    bindControl('fn',    v => { scene.fogStart = v; });
+    bindControl('ff',    v => { scene.fogEnd   = v; });
+    // Post
+    bindControl('exp',   v => { pipeline.imageProcessing.exposure = v; });
+    // SSAO
+    bindToggle('ssao',   v => {
+      if (v) scene.postProcessRenderPipelineManager.enableEffectInPipeline('ssao',
+        BABYLON.SSAO2RenderingPipeline.SSAOOriginalSceneColorEffect, scene.cameras);
+      else   scene.postProcessRenderPipelineManager.disableEffectInPipeline('ssao',
+        BABYLON.SSAO2RenderingPipeline.SSAOOriginalSceneColorEffect, scene.cameras);
+      ssao.totalStrength = v ? parseFloat(document.getElementById('n-ssaos').value) : 0;
+    });
+    bindControl('ssaos', v => { ssao.totalStrength = v; });
+    bindControl('ssaor', v => { ssao.radius = v; });
+    // Bloom
+    bindToggle('bloom',  v => { pipeline.bloomEnabled = v; });
+    bindControl('blw',   v => { pipeline.bloomWeight    = v; });
+    bindControl('blt',   v => { pipeline.bloomThreshold = v; });
+    bindControl('blk',   v => { pipeline.bloomKernel    = v; });
+    // Grain
+    bindToggle('grain',  v => { pipeline.grainEnabled = v; });
+    bindControl('grni',  v => { pipeline.grain.intensity = v; });
+    bindToggle('grna',   v => { pipeline.grain.animated  = v; });
+    // Chromatic Aberration
+    bindToggle('ca',     v => { pipeline.chromaticAberrationEnabled = v; });
+    bindControl('ca',    v => { pipeline.chromaticAberration.aberrationAmount = v; });
+    bindControl('cari',  v => { pipeline.chromaticAberration.radialIntensity  = v; });
+    // Vignette
+    bindToggle('vig',    v => { pipeline.imageProcessing.vignetteEnabled = v; });
+    bindControl('vw',    v => { pipeline.imageProcessing.vignetteWeight  = v; });
+    // Sharpen
+    bindToggle('sharp',  v => { pipeline.sharpenEnabled = v; });
+    bindControl('she',   v => { pipeline.sharpen.edgeAmount  = v; });
+    bindControl('shc',   v => { pipeline.sharpen.colorAmount = v; });
   </script>
 </body>
 </html>
