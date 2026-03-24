@@ -10,54 +10,58 @@
     #renderCanvas { width: 100%; height: 100%; display: block; }
 
     #label {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255,255,255,.08);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,.15);
-      color: #fff;
-      padding: 10px 24px;
-      border-radius: 30px;
-      font-family: 'Segoe UI', sans-serif;
-      font-size: 1rem;
-      letter-spacing: .04em;
-      pointer-events: none;
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.15); color: #fff;
+      padding: 10px 24px; border-radius: 30px;
+      font-family: 'Segoe UI', sans-serif; font-size: 1rem;
+      letter-spacing: .04em; pointer-events: none;
     }
-
-    #label span {
-      color: #f4a261;
-      font-weight: 700;
-    }
+    #label span { color: #f4a261; font-weight: 700; }
 
     #back {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: rgba(255,255,255,.08);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,.15);
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-family: 'Segoe UI', sans-serif;
-      font-size: 0.9rem;
-      text-decoration: none;
-      transition: background .2s;
+      position: fixed; top: 20px; left: 20px;
+      background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.15); color: #fff;
+      padding: 8px 16px; border-radius: 8px;
+      font-family: 'Segoe UI', sans-serif; font-size: 0.9rem;
+      text-decoration: none; transition: background .2s;
     }
     #back:hover { background: rgba(255,255,255,.16); }
 
     #info {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: rgba(255,255,255,.4);
-      font-family: 'Segoe UI', sans-serif;
-      font-size: 0.8rem;
-      pointer-events: none;
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      color: rgba(255,255,255,.4); font-family: 'Segoe UI', sans-serif;
+      font-size: 0.8rem; pointer-events: none;
     }
+
+    /* ── Control panel ──────────────────────────────────────── */
+    #panel-toggle {
+      position: fixed; top: 20px; right: 20px; z-index: 20;
+      width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
+      color: #fff; font-size: 1.2rem; cursor: pointer; transition: background .2s;
+    }
+    #panel-toggle:hover { background: rgba(255,255,255,.16); }
+
+    #panel {
+      position: fixed; top: 0; right: 0; z-index: 15;
+      width: 280px; height: 100vh; overflow-y: auto;
+      background: rgba(10,10,30,.85); backdrop-filter: blur(14px);
+      border-left: 1px solid rgba(255,255,255,.1);
+      padding: 70px 18px 30px; transform: translateX(100%);
+      transition: transform .3s ease; font-family: 'Segoe UI', sans-serif;
+    }
+    #panel.open { transform: translateX(0); }
+    #panel h3 { color: #f4a261; font-size: .85rem; text-transform: uppercase;
+      letter-spacing: .08em; margin: 18px 0 10px; }
+    #panel h3:first-child { margin-top: 0; }
+
+    .ctrl { margin-bottom: 10px; }
+    .ctrl label { display: flex; justify-content: space-between; color: rgba(255,255,255,.7);
+      font-size: .78rem; margin-bottom: 3px; }
+    .ctrl label b { color: #fff; font-variant-numeric: tabular-nums; min-width: 36px; text-align: right; }
+    .ctrl input[type=range] { width: 100%; accent-color: #f4a261; height: 4px; }
   </style>
 </head>
 <body>
@@ -66,11 +70,53 @@
   <div id="label">Scena 3D – <span>Babylon.js</span> &nbsp;<small style="opacity:.55;font-size:.78em">IBL + SSAO / GI</small></div>
   <div id="info">Lewy przycisk myszy: obrót &nbsp;|&nbsp; Kółko: zoom &nbsp;|&nbsp; Prawy przycisk: przesunięcie</div>
 
+  <button id="panel-toggle" title="Ustawienia GI">⚙</button>
+  <div id="panel">
+    <h3>Oświetlenie</h3>
+    <div class="ctrl"><label>IBL Intensity <b id="v-ibl">0.60</b></label>
+      <input type="range" min="0" max="3" step="0.05" value="0.6" id="s-ibl"></div>
+    <div class="ctrl"><label>Dir Light <b id="v-dir">2.50</b></label>
+      <input type="range" min="0" max="5" step="0.1" value="2.5" id="s-dir"></div>
+    <div class="ctrl"><label>Fill Light <b id="v-fill">0.80</b></label>
+      <input type="range" min="0" max="3" step="0.05" value="0.8" id="s-fill"></div>
+    <div class="ctrl"><label>Ambient <b id="v-amb">0.15</b></label>
+      <input type="range" min="0" max="1" step="0.01" value="0.15" id="s-amb"></div>
+
+    <h3>Bounce Panels</h3>
+    <div class="ctrl"><label>Panel Emissive <b id="v-bem">0.15</b></label>
+      <input type="range" min="0" max="1" step="0.01" value="0.15" id="s-bem"></div>
+    <div class="ctrl"><label>Bounce Lights <b id="v-bli">0.40</b></label>
+      <input type="range" min="0" max="2" step="0.05" value="0.40" id="s-bli"></div>
+
+    <h3>Atmosfera</h3>
+    <div class="ctrl"><label>Fog Near <b id="v-fn">20</b></label>
+      <input type="range" min="3" max="50" step="1" value="20" id="s-fn"></div>
+    <div class="ctrl"><label>Fog Far <b id="v-ff">60</b></label>
+      <input type="range" min="15" max="120" step="1" value="60" id="s-ff"></div>
+
+    <h3>Post-processing</h3>
+    <div class="ctrl"><label>Exposure <b id="v-exp">1.20</b></label>
+      <input type="range" min="0.2" max="4" step="0.05" value="1.2" id="s-exp"></div>
+    <div class="ctrl"><label>SSAO Strength <b id="v-ssao">1.40</b></label>
+      <input type="range" min="0" max="3" step="0.05" value="1.4" id="s-ssao"></div>
+    <div class="ctrl"><label>SSAO Radius <b id="v-ssaor">3.50</b></label>
+      <input type="range" min="0.5" max="10" step="0.25" value="3.5" id="s-ssaor"></div>
+    <div class="ctrl"><label>Bloom Weight <b id="v-blw">0.25</b></label>
+      <input type="range" min="0" max="1" step="0.02" value="0.25" id="s-blw"></div>
+    <div class="ctrl"><label>Bloom Threshold <b id="v-blt">0.75</b></label>
+      <input type="range" min="0" max="2" step="0.05" value="0.75" id="s-blt"></div>
+  </div>
+
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
 
   <script>
     const canvas = document.getElementById('renderCanvas');
     const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+
+    // These will be referenced by slider callbacks
+    let dirLight, fillLight, hemi, ssao, pipeline;
+    const bounceLights = [];
+    const bounceMats   = [];
 
     function createScene() {
       const scene = new BABYLON.Scene(engine);
@@ -80,10 +126,7 @@
       scene.fogStart = 20;
       scene.fogEnd = 60;
 
-      // ── IBL – Global Illumination approx. via Image-Based Lighting ─
-      // Prefiltered .env from Babylon CDN encodes the full sphere of
-      // incoming radiance; PBRMaterial uses it for both diffuse irradiance
-      // (spherical harmonics) and specular GGX lobes → indirect lighting.
+      // ── IBL ───────────────────────────────────────────────────
       scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
         'https://assets.babylonjs.com/environments/environmentSpecular.env', scene
       );
@@ -91,12 +134,8 @@
 
       // ── Camera ────────────────────────────────────────────────
       const camera = new BABYLON.ArcRotateCamera(
-        'cam',
-        -Math.PI / 4,       // alpha
-        Math.PI / 3.5,      // beta
-        12,                 // radius
-        new BABYLON.Vector3(0, 1, 0),
-        scene
+        'cam', -Math.PI / 4, Math.PI / 3.5, 12,
+        new BABYLON.Vector3(0, 1, 0), scene
       );
       camera.attachControl(canvas, true);
       camera.lowerRadiusLimit = 3;
@@ -104,23 +143,36 @@
       camera.panningSensibility = 100;
 
       // ── Lights ────────────────────────────────────────────────
-      const hemi = new BABYLON.HemisphericLight('hemi', new BABYLON.Vector3(0, 1, 0), scene);
-      hemi.intensity = 0.15;  // IBL replaces most ambient
+      hemi = new BABYLON.HemisphericLight('hemi', new BABYLON.Vector3(0, 1, 0), scene);
+      hemi.intensity = 0.15;
       hemi.diffuse = new BABYLON.Color3(0.53, 0.6, 0.8);
       hemi.groundColor = new BABYLON.Color3(0.1, 0.1, 0.2);
 
-      const dirLight = new BABYLON.DirectionalLight(
-        'dir',
-        new BABYLON.Vector3(-0.5, -1, -0.4),
-        scene
-      );
+      dirLight = new BABYLON.DirectionalLight('dir',
+        new BABYLON.Vector3(-0.5, -1, -0.4), scene);
       dirLight.position = new BABYLON.Vector3(8, 12, 6);
       dirLight.intensity = 2.5;
 
-      const fillLight = new BABYLON.PointLight('fill', new BABYLON.Vector3(-5, 3, -3), scene);
+      fillLight = new BABYLON.PointLight('fill', new BABYLON.Vector3(-5, 3, -3), scene);
       fillLight.diffuse = new BABYLON.Color3(0.27, 0.4, 1);
       fillLight.intensity = 0.8;
       fillLight.range = 20;
+
+      // ── Bounce lights ─────────────────────────────────────────
+      const bWarm = new BABYLON.PointLight('bWarm', new BABYLON.Vector3(-7, 2.5, 0), scene);
+      bWarm.diffuse = new BABYLON.Color3(1, 0.53, 0.27);
+      bWarm.intensity = 0.4; bWarm.range = 18;
+      bounceLights.push(bWarm);
+
+      const bCool = new BABYLON.PointLight('bCool', new BABYLON.Vector3(7, 2.5, 0), scene);
+      bCool.diffuse = new BABYLON.Color3(0.27, 0.4, 1);
+      bCool.intensity = 0.4; bCool.range = 18;
+      bounceLights.push(bCool);
+
+      const bBack = new BABYLON.PointLight('bBack', new BABYLON.Vector3(0, 2.5, -9), scene);
+      bBack.diffuse = new BABYLON.Color3(0.67, 0.73, 0.8);
+      bBack.intensity = 0.3; bBack.range = 18;
+      bounceLights.push(bBack);
 
       // ── Shadows ───────────────────────────────────────────────
       const shadowGen = new BABYLON.ShadowGenerator(2048, dirLight);
@@ -129,7 +181,6 @@
 
       // ── Ground ────────────────────────────────────────────────
       const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 30, height: 30 }, scene);
-      // PBRMaterial so the ground also receives IBL irradiance
       const groundMat = new BABYLON.PBRMaterial('groundMat', scene);
       groundMat.albedoColor = new BABYLON.Color3(0.102, 0.102, 0.227);
       groundMat.roughness = 0.95;
@@ -137,10 +188,9 @@
       ground.material = groundMat;
       ground.receiveShadows = true;
 
-      // Grid lines via LineSystem
+      // Grid
       const gridLines = [];
-      const half = 15;
-      const step = 1;
+      const half = 15, step = 1;
       for (let i = -half; i <= half; i += step) {
         gridLines.push([new BABYLON.Vector3(i, 0.01, -half), new BABYLON.Vector3(i, 0.01, half)]);
         gridLines.push([new BABYLON.Vector3(-half, 0.01, i), new BABYLON.Vector3(half, 0.01, i)]);
@@ -148,6 +198,36 @@
       const grid = BABYLON.MeshBuilder.CreateLineSystem('grid', { lines: gridLines }, scene);
       grid.color = new BABYLON.Color3(0.2, 0.2, 0.4);
       grid.alpha = 0.4;
+
+      // ── Bounce reflector panels ───────────────────────────────
+      function makeReflector(name, pos, rotY, emissiveColor, emissiveIntensity) {
+        const plane = BABYLON.MeshBuilder.CreatePlane(name, { width: 8, height: 5 }, scene);
+        plane.position = pos;
+        plane.rotation.y = rotY;
+        const mat = new BABYLON.PBRMaterial(name + 'Mat', scene);
+        mat.albedoColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+        mat.emissiveColor = emissiveColor;
+        mat.emissiveIntensity = emissiveIntensity;
+        mat.roughness = 0.8;
+        mat.metallic = 0;
+        mat.alpha = 0.25;
+        mat.backFaceCulling = false;
+        plane.material = mat;
+        bounceMats.push(mat);
+        return plane;
+      }
+
+      makeReflector('leftRefl',
+        new BABYLON.Vector3(-9, 3, 0), Math.PI / 2,
+        new BABYLON.Color3(1, 0.53, 0.27), 0.15);
+
+      makeReflector('rightRefl',
+        new BABYLON.Vector3(9, 3, 0), -Math.PI / 2,
+        new BABYLON.Color3(0.27, 0.4, 1), 0.15);
+
+      makeReflector('backRefl',
+        new BABYLON.Vector3(0, 3, -11), 0,
+        new BABYLON.Color3(0.67, 0.73, 0.8), 0.10);
 
       // ── Cube (PBR) ────────────────────────────────────────────
       const cube = BABYLON.MeshBuilder.CreateBox('cube', { size: 2 }, scene);
@@ -173,11 +253,8 @@
       shadowGen.addShadowCaster(sphere);
 
       // ── Torus ─────────────────────────────────────────────────
-      const torus = BABYLON.MeshBuilder.CreateTorus(
-        'torus',
-        { diameter: 1.6, thickness: 0.6, tessellation: 64 },
-        scene
-      );
+      const torus = BABYLON.MeshBuilder.CreateTorus('torus',
+        { diameter: 1.6, thickness: 0.6, tessellation: 64 }, scene);
       torus.position = new BABYLON.Vector3(0, 1, -3);
       const torusMat = new BABYLON.PBRMaterial('torusMat', scene);
       torusMat.albedoColor = new BABYLON.Color3(0.957, 0.635, 0.38);
@@ -187,27 +264,20 @@
       torus.receiveShadows = true;
       shadowGen.addShadowCaster(torus);
 
-      // ── Animation loop ────────────────────────────────────────
+      // ── Animation ─────────────────────────────────────────────
       let t = 0;
       scene.registerBeforeRender(() => {
         t += engine.getDeltaTime() / 1000;
-
         cube.rotation.x = t * 0.6;
         cube.rotation.y = t * 0.9;
-
         sphere.position.y = 1 + Math.abs(Math.sin(t * 1.8)) * 2;
-
         torus.rotation.x = t * 0.7;
         torus.rotation.z = t * 0.4;
       });
 
-      // ── SSAO2 – Screen-Space Ambient Occlusion ────────────────
-      // Estimates how much ambient/indirect light reaches each surface
-      // point based on the local geometry → darkens crevices and contact
-      // areas, approximating the short-range GI bounce occlusion.
-      const ssao = new BABYLON.SSAO2RenderingPipeline('ssao', scene, {
-        ssaoRatio: 0.5,
-        blurRatio: 1
+      // ── SSAO2 ─────────────────────────────────────────────────
+      ssao = new BABYLON.SSAO2RenderingPipeline('ssao', scene, {
+        ssaoRatio: 0.5, blurRatio: 1
       });
       ssao.radius = 3.5;
       ssao.totalStrength = 1.4;
@@ -217,8 +287,8 @@
       scene.postProcessRenderPipelineManager
         .attachCamerasToRenderPipeline('ssao', camera);
 
-      // ── DefaultRenderingPipeline – ACES tone mapping + bloom ──
-      const pipeline = new BABYLON.DefaultRenderingPipeline(
+      // ── DefaultRenderingPipeline ──────────────────────────────
+      pipeline = new BABYLON.DefaultRenderingPipeline(
         'default', true, scene, [camera]
       );
       pipeline.bloomEnabled = true;
@@ -235,10 +305,38 @@
     }
 
     const scene = createScene();
-
     engine.runRenderLoop(() => scene.render());
-
     window.addEventListener('resize', () => engine.resize());
+
+    // ── Slider panel ────────────────────────────────────────────
+    const panel = document.getElementById('panel');
+    document.getElementById('panel-toggle').addEventListener('click', () => {
+      panel.classList.toggle('open');
+    });
+
+    function bindSlider(id, cb) {
+      const el = document.getElementById('s-' + id);
+      const vEl = document.getElementById('v-' + id);
+      el.addEventListener('input', () => {
+        const v = parseFloat(el.value);
+        vEl.textContent = v.toFixed(2);
+        cb(v);
+      });
+    }
+
+    bindSlider('ibl',   v => { scene.environmentIntensity = v; });
+    bindSlider('dir',   v => { dirLight.intensity = v; });
+    bindSlider('fill',  v => { fillLight.intensity = v; });
+    bindSlider('amb',   v => { hemi.intensity = v; });
+    bindSlider('bem',   v => { bounceMats.forEach(m => m.emissiveIntensity = v); });
+    bindSlider('bli',   v => { bounceLights.forEach(l => l.intensity = v); });
+    bindSlider('fn',    v => { scene.fogStart = v; });
+    bindSlider('ff',    v => { scene.fogEnd = v; });
+    bindSlider('exp',   v => { pipeline.imageProcessing.exposure = v; });
+    bindSlider('ssao',  v => { ssao.totalStrength = v; });
+    bindSlider('ssaor', v => { ssao.radius = v; });
+    bindSlider('blw',   v => { pipeline.bloomWeight = v; });
+    bindSlider('blt',   v => { pipeline.bloomThreshold = v; });
   </script>
 </body>
 </html>
