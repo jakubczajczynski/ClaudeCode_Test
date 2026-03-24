@@ -10,60 +10,97 @@
     canvas { display: block; }
 
     #label {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255,255,255,.08);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,.15);
-      color: #fff;
-      padding: 10px 24px;
-      border-radius: 30px;
-      font-family: 'Segoe UI', sans-serif;
-      font-size: 1rem;
-      letter-spacing: .04em;
-      pointer-events: none;
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.15); color: #fff;
+      padding: 10px 24px; border-radius: 30px;
+      font-family: 'Segoe UI', sans-serif; font-size: 1rem;
+      letter-spacing: .04em; pointer-events: none;
     }
-
-    #label span {
-      color: #7eb8f7;
-      font-weight: 700;
-    }
+    #label span { color: #7eb8f7; font-weight: 700; }
 
     #back {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: rgba(255,255,255,.08);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,.15);
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-family: 'Segoe UI', sans-serif;
-      font-size: 0.9rem;
-      text-decoration: none;
-      transition: background .2s;
+      position: fixed; top: 20px; left: 20px;
+      background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.15); color: #fff;
+      padding: 8px 16px; border-radius: 8px;
+      font-family: 'Segoe UI', sans-serif; font-size: 0.9rem;
+      text-decoration: none; transition: background .2s;
     }
     #back:hover { background: rgba(255,255,255,.16); }
 
     #info {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: rgba(255,255,255,.4);
-      font-family: 'Segoe UI', sans-serif;
-      font-size: 0.8rem;
-      pointer-events: none;
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      color: rgba(255,255,255,.4); font-family: 'Segoe UI', sans-serif;
+      font-size: 0.8rem; pointer-events: none;
     }
+
+    /* ── Control panel ──────────────────────────────────────── */
+    #panel-toggle {
+      position: fixed; top: 20px; right: 20px; z-index: 20;
+      width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
+      color: #fff; font-size: 1.2rem; cursor: pointer; transition: background .2s;
+    }
+    #panel-toggle:hover { background: rgba(255,255,255,.16); }
+
+    #panel {
+      position: fixed; top: 0; right: 0; z-index: 15;
+      width: 280px; height: 100vh; overflow-y: auto;
+      background: rgba(10,10,30,.85); backdrop-filter: blur(14px);
+      border-left: 1px solid rgba(255,255,255,.1);
+      padding: 70px 18px 30px; transform: translateX(100%);
+      transition: transform .3s ease; font-family: 'Segoe UI', sans-serif;
+    }
+    #panel.open { transform: translateX(0); }
+    #panel h3 { color: #7eb8f7; font-size: .85rem; text-transform: uppercase;
+      letter-spacing: .08em; margin: 18px 0 10px; }
+    #panel h3:first-child { margin-top: 0; }
+
+    .ctrl { margin-bottom: 10px; }
+    .ctrl label { display: flex; justify-content: space-between; color: rgba(255,255,255,.7);
+      font-size: .78rem; margin-bottom: 3px; }
+    .ctrl label b { color: #fff; font-variant-numeric: tabular-nums; min-width: 36px; text-align: right; }
+    .ctrl input[type=range] { width: 100%; accent-color: #4361ee; height: 4px; }
   </style>
 </head>
 <body>
   <a href="index.html" id="back">← Wróć</a>
   <div id="label">Scena 3D – <span>Three.js</span> &nbsp;<small style="opacity:.55;font-size:.78em">IBL / GI</small></div>
   <div id="info">Lewy przycisk myszy: obrót &nbsp;|&nbsp; Kółko: zoom &nbsp;|&nbsp; Prawy przycisk: przesunięcie</div>
+
+  <button id="panel-toggle" title="Ustawienia GI">⚙</button>
+  <div id="panel">
+    <h3>Oświetlenie</h3>
+    <div class="ctrl"><label>IBL Intensity <b id="v-ibl">1.0</b></label>
+      <input type="range" min="0" max="3" step="0.05" value="1.0" id="s-ibl"></div>
+    <div class="ctrl"><label>Dir Light <b id="v-dir">2.5</b></label>
+      <input type="range" min="0" max="5" step="0.1" value="2.5" id="s-dir"></div>
+    <div class="ctrl"><label>Fill Light <b id="v-fill">1.0</b></label>
+      <input type="range" min="0" max="3" step="0.05" value="1.0" id="s-fill"></div>
+    <div class="ctrl"><label>Ambient <b id="v-amb">0.12</b></label>
+      <input type="range" min="0" max="1" step="0.01" value="0.12" id="s-amb"></div>
+
+    <h3>Bounce Panels</h3>
+    <div class="ctrl"><label>Panel Emissive <b id="v-bem">0.15</b></label>
+      <input type="range" min="0" max="1" step="0.01" value="0.15" id="s-bem"></div>
+    <div class="ctrl"><label>Bounce Lights <b id="v-bli">0.40</b></label>
+      <input type="range" min="0" max="2" step="0.05" value="0.40" id="s-bli"></div>
+
+    <h3>Atmosfera</h3>
+    <div class="ctrl"><label>Fog Near <b id="v-fn">20</b></label>
+      <input type="range" min="3" max="50" step="1" value="20" id="s-fn"></div>
+    <div class="ctrl"><label>Fog Far <b id="v-ff">60</b></label>
+      <input type="range" min="15" max="120" step="1" value="60" id="s-ff"></div>
+
+    <h3>Post-processing</h3>
+    <div class="ctrl"><label>Exposure <b id="v-exp">1.20</b></label>
+      <input type="range" min="0.2" max="4" step="0.05" value="1.2" id="s-exp"></div>
+    <div class="ctrl"><label>Bloom Strength <b id="v-bls">0.30</b></label>
+      <input type="range" min="0" max="2" step="0.05" value="0.30" id="s-bls"></div>
+    <div class="ctrl"><label>Bloom Threshold <b id="v-blt">0.85</b></label>
+      <input type="range" min="0" max="2" step="0.05" value="0.85" id="s-blt"></div>
+  </div>
 
   <script type="importmap">
   {
@@ -78,6 +115,10 @@
     import * as THREE from 'three';
     import { OrbitControls }   from 'three/addons/controls/OrbitControls.js';
     import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { EffectComposer }  from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass }      from 'three/addons/postprocessing/OutputPass.js';
 
     // ── Renderer ────────────────────────────────────────────────
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -94,23 +135,20 @@
     scene.background = new THREE.Color(0x0d0d1a);
     scene.fog = new THREE.Fog(0x0d0d1a, 20, 60);
 
-    // ── IBL – Global Illumination approx. via Image-Based Lighting ─
-    // PMREMGenerator pre-filters a synthetic room env into irradiance +
-    // specular radiance maps; scene.environment applies them to every
-    // MeshStandardMaterial / MeshPhysicalMaterial automatically (diffuse
-    // spherical harmonics + GGX specular lobes → indirect lighting).
+    // ── IBL ─────────────────────────────────────────────────────
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     const envTexture = pmremGenerator.fromScene(
       new RoomEnvironment(renderer), 0.04
     ).texture;
-    scene.environment = envTexture;   // drives IBL on all PBR surfaces
+    scene.environment = envTexture;
+    scene.environmentIntensity = 1.0;
     pmremGenerator.dispose();
 
     // ── Camera ──────────────────────────────────────────────────
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(6, 5, 8);
 
-    // ── Controls ─────────────────────────────────────────────────
+    // ── Controls ────────────────────────────────────────────────
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
@@ -118,8 +156,7 @@
     controls.maxDistance = 25;
     controls.target.set(0, 1, 0);
 
-    // ── Lights ───────────────────────────────────────────────────
-    // IBL already provides diffuse indirect light; keep a faint tint only
+    // ── Lights ──────────────────────────────────────────────────
     const ambient = new THREE.AmbientLight(0x8899cc, 0.12);
     scene.add(ambient);
 
@@ -140,30 +177,73 @@
     fillLight.position.set(-5, 3, -3);
     scene.add(fillLight);
 
-    // ── Ground ───────────────────────────────────────────────────
+    // ── Bounce lights (simulate indirect bounced light) ─────────
+    const bounceWarm = new THREE.PointLight(0xff8844, 0.4, 18);
+    bounceWarm.position.set(-7, 2.5, 0);
+    scene.add(bounceWarm);
+
+    const bounceCool = new THREE.PointLight(0x4466ff, 0.4, 18);
+    bounceCool.position.set(7, 2.5, 0);
+    scene.add(bounceCool);
+
+    const bounceBack = new THREE.PointLight(0xaabbcc, 0.3, 18);
+    bounceBack.position.set(0, 2.5, -9);
+    scene.add(bounceBack);
+
+    // ── Ground ──────────────────────────────────────────────────
     const groundGeo = new THREE.PlaneGeometry(30, 30);
     const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x1a1a3a,
-      roughness: 0.9,
-      metalness: 0.1,
+      color: 0x1a1a3a, roughness: 0.9, metalness: 0.1,
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // ── Grid ─────────────────────────────────────────────────────
+    // ── Grid ────────────────────────────────────────────────────
     const grid = new THREE.GridHelper(30, 30, 0x333366, 0x222244);
     grid.material.opacity = 0.4;
     grid.material.transparent = true;
     scene.add(grid);
 
-    // ── Cube (PBR) ───────────────────────────────────────────────
+    // ── Bounce reflector panels ─────────────────────────────────
+    // Large emissive panels placed around the scene – they simulate
+    // large-area indirect light sources (like photography reflectors).
+    const reflGeo = new THREE.PlaneGeometry(8, 5);
+
+    const leftReflMat = new THREE.MeshStandardMaterial({
+      color: 0x221100, emissive: 0xff8844, emissiveIntensity: 0.15,
+      roughness: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.25,
+    });
+    const leftRefl = new THREE.Mesh(reflGeo, leftReflMat);
+    leftRefl.position.set(-9, 3, 0);
+    leftRefl.rotation.y = Math.PI / 2;
+    scene.add(leftRefl);
+
+    const rightReflMat = new THREE.MeshStandardMaterial({
+      color: 0x001122, emissive: 0x4466ff, emissiveIntensity: 0.15,
+      roughness: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.25,
+    });
+    const rightRefl = new THREE.Mesh(reflGeo, rightReflMat);
+    rightRefl.position.set(9, 3, 0);
+    rightRefl.rotation.y = -Math.PI / 2;
+    scene.add(rightRefl);
+
+    const backReflMat = new THREE.MeshStandardMaterial({
+      color: 0x111111, emissive: 0xaabbcc, emissiveIntensity: 0.10,
+      roughness: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.20,
+    });
+    const backRefl = new THREE.Mesh(reflGeo, backReflMat);
+    backRefl.position.set(0, 3, -11);
+    scene.add(backRefl);
+
+    const reflectorMats  = [leftReflMat, rightReflMat, backReflMat];
+    const bounceLights   = [bounceWarm, bounceCool, bounceBack];
+
+    // ── Cube (PBR) ──────────────────────────────────────────────
     const cubeGeo = new THREE.BoxGeometry(2, 2, 2);
     const cubeMat = new THREE.MeshStandardMaterial({
-      color: 0x4361ee,
-      roughness: 0.3,
-      metalness: 0.7,
+      color: 0x4361ee, roughness: 0.3, metalness: 0.7,
     });
     const cube = new THREE.Mesh(cubeGeo, cubeMat);
     cube.position.set(-2, 1, 0);
@@ -171,13 +251,10 @@
     cube.receiveShadow = true;
     scene.add(cube);
 
-    // ── Sphere ───────────────────────────────────────────────────
+    // ── Sphere ──────────────────────────────────────────────────
     const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
     const sphereMat = new THREE.MeshStandardMaterial({
-      color: 0x2ec4b6,
-      roughness: 0.2,
-      metalness: 0.5,
-      emissive: 0x0a3330,
+      color: 0x2ec4b6, roughness: 0.2, metalness: 0.5, emissive: 0x0a3330,
     });
     const sphere = new THREE.Mesh(sphereGeo, sphereMat);
     sphere.position.set(2, 1, 0);
@@ -185,48 +262,83 @@
     sphere.receiveShadow = true;
     scene.add(sphere);
 
-    // ── Torus ────────────────────────────────────────────────────
+    // ── Torus ───────────────────────────────────────────────────
     const torusGeo = new THREE.TorusGeometry(0.8, 0.3, 32, 100);
     const torusMat = new THREE.MeshStandardMaterial({
-      color: 0xf4a261,
-      roughness: 0.4,
-      metalness: 0.6,
+      color: 0xf4a261, roughness: 0.4, metalness: 0.6,
     });
     const torus = new THREE.Mesh(torusGeo, torusMat);
     torus.position.set(0, 1, -3);
     torus.castShadow = true;
     scene.add(torus);
 
-    // ── Resize ───────────────────────────────────────────────────
+    // ── Post-processing (Bloom) ─────────────────────────────────
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.30,  // strength
+      0.4,   // radius
+      0.85   // threshold
+    );
+    composer.addPass(bloomPass);
+    composer.addPass(new OutputPass());
+
+    // ── Resize ──────────────────────────────────────────────────
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // ── Animation loop ───────────────────────────────────────────
+    // ── Animation loop ──────────────────────────────────────────
     const clock = new THREE.Clock();
 
     function animate() {
       requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
 
-      // Cube: rotate on all axes
       cube.rotation.x = t * 0.6;
       cube.rotation.y = t * 0.9;
 
-      // Sphere: bounce (sin wave)
       sphere.position.y = 1 + Math.abs(Math.sin(t * 1.8)) * 2;
 
-      // Torus: spin + wobble
       torus.rotation.x = t * 0.7;
       torus.rotation.z = t * 0.4;
 
       controls.update();
-      renderer.render(scene, camera);
+      composer.render();
+    }
+    animate();
+
+    // ── Slider panel ────────────────────────────────────────────
+    const panel = document.getElementById('panel');
+    document.getElementById('panel-toggle').addEventListener('click', () => {
+      panel.classList.toggle('open');
+    });
+
+    function bindSlider(id, cb) {
+      const el = document.getElementById('s-' + id);
+      const vEl = document.getElementById('v-' + id);
+      el.addEventListener('input', () => {
+        const v = parseFloat(el.value);
+        vEl.textContent = v.toFixed(2);
+        cb(v);
+      });
     }
 
-    animate();
+    bindSlider('ibl', v => { scene.environmentIntensity = v; });
+    bindSlider('dir', v => { dirLight.intensity = v; });
+    bindSlider('fill', v => { fillLight.intensity = v; });
+    bindSlider('amb', v => { ambient.intensity = v; });
+    bindSlider('bem', v => { reflectorMats.forEach(m => m.emissiveIntensity = v); });
+    bindSlider('bli', v => { bounceLights.forEach(l => l.intensity = v); });
+    bindSlider('fn',  v => { scene.fog.near = v; });
+    bindSlider('ff',  v => { scene.fog.far = v; });
+    bindSlider('exp', v => { renderer.toneMappingExposure = v; });
+    bindSlider('bls', v => { bloomPass.strength = v; });
+    bindSlider('blt', v => { bloomPass.threshold = v; });
   </script>
 </body>
 </html>
