@@ -62,7 +62,7 @@
 </head>
 <body>
   <a href="index.html" id="back">← Wróć</a>
-  <div id="label">Scena 3D – <span>Three.js</span></div>
+  <div id="label">Scena 3D – <span>Three.js</span> &nbsp;<small style="opacity:.55;font-size:.78em">IBL / GI</small></div>
   <div id="info">Lewy przycisk myszy: obrót &nbsp;|&nbsp; Kółko: zoom &nbsp;|&nbsp; Prawy przycisk: przesunięcie</div>
 
   <script type="importmap">
@@ -76,7 +76,8 @@
 
   <script type="module">
     import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { OrbitControls }   from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
     // ── Renderer ────────────────────────────────────────────────
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -93,6 +94,18 @@
     scene.background = new THREE.Color(0x0d0d1a);
     scene.fog = new THREE.Fog(0x0d0d1a, 20, 60);
 
+    // ── IBL – Global Illumination approx. via Image-Based Lighting ─
+    // PMREMGenerator pre-filters a synthetic room env into irradiance +
+    // specular radiance maps; scene.environment applies them to every
+    // MeshStandardMaterial / MeshPhysicalMaterial automatically (diffuse
+    // spherical harmonics + GGX specular lobes → indirect lighting).
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    const envTexture = pmremGenerator.fromScene(
+      new RoomEnvironment(renderer), 0.04
+    ).texture;
+    scene.environment = envTexture;   // drives IBL on all PBR surfaces
+    pmremGenerator.dispose();
+
     // ── Camera ──────────────────────────────────────────────────
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(6, 5, 8);
@@ -106,7 +119,8 @@
     controls.target.set(0, 1, 0);
 
     // ── Lights ───────────────────────────────────────────────────
-    const ambient = new THREE.AmbientLight(0x8899cc, 0.6);
+    // IBL already provides diffuse indirect light; keep a faint tint only
+    const ambient = new THREE.AmbientLight(0x8899cc, 0.12);
     scene.add(ambient);
 
     const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
