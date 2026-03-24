@@ -445,12 +445,29 @@
       ptOverlay.style.display = 'block';
       ptOverlay.textContent = 'Ładowanie biblioteki PT…';
 
+      // Używamy absolutnych URL żeby ominąć importmap (wersja w importmap może nie istnieć).
+      // esm.sh bundluje three-mesh-bvh wewnętrznie; three musi być zewnętrzne (shared instance).
       let WebGLPathTracer;
-      try {
-        ({ WebGLPathTracer } = await import('three-gpu-pathtracer'));
-      } catch (e) {
-        ptOverlay.textContent = 'Błąd: nie można załadować three-gpu-pathtracer. ' + e.message;
-        console.error('three-gpu-pathtracer load error:', e);
+      const ptCandidates = [
+        'https://esm.sh/three-gpu-pathtracer?external=three',
+        'https://esm.sh/three-gpu-pathtracer@0.0.13?external=three',
+      ];
+      let ptLoadErr;
+      for (const url of ptCandidates) {
+        try {
+          ({ WebGLPathTracer } = await import(url));
+          if (WebGLPathTracer) break;
+        } catch (e) {
+          ptLoadErr = e;
+          console.warn('PT load failed from', url, e.message);
+        }
+      }
+      if (!WebGLPathTracer) {
+        ptOverlay.textContent =
+          'Błąd: nie można załadować three-gpu-pathtracer.\n' +
+          (ptLoadErr?.message ?? '') +
+          '\nSprawdź połączenie z internetem i odśwież stronę.';
+        console.error('three-gpu-pathtracer unavailable', ptLoadErr);
         ptMode = false;
         document.getElementById('btn-rt').classList.add('active');
         document.getElementById('btn-pt').classList.remove('active');
