@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three.js – Przykładowa scena</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0d0d1a; overflow: hidden; }
+    canvas { display: block; }
+
+    #label {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.15);
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 1rem;
+      letter-spacing: .04em;
+      pointer-events: none;
+    }
+
+    #label span {
+      color: #7eb8f7;
+      font-weight: 700;
+    }
+
+    #back {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.15);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    #back:hover { background: rgba(255,255,255,.16); }
+
+    #info {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,.4);
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 0.8rem;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" id="back">← Wróć</a>
+  <div id="label">Scena 3D – <span>Three.js</span></div>
+  <div id="info">Lewy przycisk myszy: obrót &nbsp;|&nbsp; Kółko: zoom &nbsp;|&nbsp; Prawy przycisk: przesunięcie</div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ── Renderer ────────────────────────────────────────────────
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    document.body.appendChild(renderer.domElement);
+
+    // ── Scene ───────────────────────────────────────────────────
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0d0d1a);
+    scene.fog = new THREE.Fog(0x0d0d1a, 20, 60);
+
+    // ── Camera ──────────────────────────────────────────────────
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(6, 5, 8);
+
+    // ── Controls ─────────────────────────────────────────────────
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.minDistance = 3;
+    controls.maxDistance = 25;
+    controls.target.set(0, 1, 0);
+
+    // ── Lights ───────────────────────────────────────────────────
+    const ambient = new THREE.AmbientLight(0x8899cc, 0.6);
+    scene.add(ambient);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    dirLight.position.set(8, 12, 6);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 40;
+    dirLight.shadow.camera.left = -10;
+    dirLight.shadow.camera.right = 10;
+    dirLight.shadow.camera.top = 10;
+    dirLight.shadow.camera.bottom = -10;
+    dirLight.shadow.bias = -0.001;
+    scene.add(dirLight);
+
+    const fillLight = new THREE.PointLight(0x4466ff, 1.0, 20);
+    fillLight.position.set(-5, 3, -3);
+    scene.add(fillLight);
+
+    // ── Ground ───────────────────────────────────────────────────
+    const groundGeo = new THREE.PlaneGeometry(30, 30);
+    const groundMat = new THREE.MeshStandardMaterial({
+      color: 0x1a1a3a,
+      roughness: 0.9,
+      metalness: 0.1,
+    });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // ── Grid ─────────────────────────────────────────────────────
+    const grid = new THREE.GridHelper(30, 30, 0x333366, 0x222244);
+    grid.material.opacity = 0.4;
+    grid.material.transparent = true;
+    scene.add(grid);
+
+    // ── Cube (PBR) ───────────────────────────────────────────────
+    const cubeGeo = new THREE.BoxGeometry(2, 2, 2);
+    const cubeMat = new THREE.MeshStandardMaterial({
+      color: 0x4361ee,
+      roughness: 0.3,
+      metalness: 0.7,
+    });
+    const cube = new THREE.Mesh(cubeGeo, cubeMat);
+    cube.position.set(-2, 1, 0);
+    cube.castShadow = true;
+    cube.receiveShadow = true;
+    scene.add(cube);
+
+    // ── Sphere ───────────────────────────────────────────────────
+    const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
+    const sphereMat = new THREE.MeshStandardMaterial({
+      color: 0x2ec4b6,
+      roughness: 0.2,
+      metalness: 0.5,
+      emissive: 0x0a3330,
+    });
+    const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+    sphere.position.set(2, 1, 0);
+    sphere.castShadow = true;
+    sphere.receiveShadow = true;
+    scene.add(sphere);
+
+    // ── Torus ────────────────────────────────────────────────────
+    const torusGeo = new THREE.TorusGeometry(0.8, 0.3, 32, 100);
+    const torusMat = new THREE.MeshStandardMaterial({
+      color: 0xf4a261,
+      roughness: 0.4,
+      metalness: 0.6,
+    });
+    const torus = new THREE.Mesh(torusGeo, torusMat);
+    torus.position.set(0, 1, -3);
+    torus.castShadow = true;
+    scene.add(torus);
+
+    // ── Resize ───────────────────────────────────────────────────
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ── Animation loop ───────────────────────────────────────────
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+
+      // Cube: rotate on all axes
+      cube.rotation.x = t * 0.6;
+      cube.rotation.y = t * 0.9;
+
+      // Sphere: bounce (sin wave)
+      sphere.position.y = 1 + Math.abs(Math.sin(t * 1.8)) * 2;
+
+      // Torus: spin + wobble
+      torus.rotation.x = t * 0.7;
+      torus.rotation.z = t * 0.4;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
