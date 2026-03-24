@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Babylon.js – Przykładowa scena</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0d0d1a; }
+    #renderCanvas { width: 100%; height: 100%; display: block; }
+
+    #label {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.15);
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 1rem;
+      letter-spacing: .04em;
+      pointer-events: none;
+    }
+
+    #label span {
+      color: #f4a261;
+      font-weight: 700;
+    }
+
+    #back {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.15);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    #back:hover { background: rgba(255,255,255,.16); }
+
+    #info {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,.4);
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 0.8rem;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+  <a href="index.html" id="back">← Wróć</a>
+  <div id="label">Scena 3D – <span>Babylon.js</span></div>
+  <div id="info">Lewy przycisk myszy: obrót &nbsp;|&nbsp; Kółko: zoom &nbsp;|&nbsp; Prawy przycisk: przesunięcie</div>
+
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+
+  <script>
+    const canvas = document.getElementById('renderCanvas');
+    const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+
+    function createScene() {
+      const scene = new BABYLON.Scene(engine);
+      scene.clearColor = new BABYLON.Color4(0.051, 0.051, 0.102, 1);
+      scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;
+      scene.fogColor = new BABYLON.Color3(0.051, 0.051, 0.102);
+      scene.fogStart = 20;
+      scene.fogEnd = 60;
+
+      // ── Camera ────────────────────────────────────────────────
+      const camera = new BABYLON.ArcRotateCamera(
+        'cam',
+        -Math.PI / 4,       // alpha
+        Math.PI / 3.5,      // beta
+        12,                 // radius
+        new BABYLON.Vector3(0, 1, 0),
+        scene
+      );
+      camera.attachControl(canvas, true);
+      camera.lowerRadiusLimit = 3;
+      camera.upperRadiusLimit = 25;
+      camera.panningSensibility = 100;
+
+      // ── Lights ────────────────────────────────────────────────
+      const hemi = new BABYLON.HemisphericLight('hemi', new BABYLON.Vector3(0, 1, 0), scene);
+      hemi.intensity = 0.5;
+      hemi.diffuse = new BABYLON.Color3(0.53, 0.6, 0.8);
+      hemi.groundColor = new BABYLON.Color3(0.1, 0.1, 0.2);
+
+      const dirLight = new BABYLON.DirectionalLight(
+        'dir',
+        new BABYLON.Vector3(-0.5, -1, -0.4),
+        scene
+      );
+      dirLight.position = new BABYLON.Vector3(8, 12, 6);
+      dirLight.intensity = 2.5;
+
+      const fillLight = new BABYLON.PointLight('fill', new BABYLON.Vector3(-5, 3, -3), scene);
+      fillLight.diffuse = new BABYLON.Color3(0.27, 0.4, 1);
+      fillLight.intensity = 0.8;
+      fillLight.range = 20;
+
+      // ── Shadows ───────────────────────────────────────────────
+      const shadowGen = new BABYLON.ShadowGenerator(2048, dirLight);
+      shadowGen.useBlurExponentialShadowMap = true;
+      shadowGen.blurKernel = 32;
+
+      // ── Ground ────────────────────────────────────────────────
+      const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 30, height: 30 }, scene);
+      const groundMat = new BABYLON.StandardMaterial('groundMat', scene);
+      groundMat.diffuseColor = new BABYLON.Color3(0.102, 0.102, 0.227);
+      groundMat.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+      ground.material = groundMat;
+      ground.receiveShadows = true;
+
+      // Grid lines via LineSystem
+      const gridLines = [];
+      const half = 15;
+      const step = 1;
+      for (let i = -half; i <= half; i += step) {
+        gridLines.push([new BABYLON.Vector3(i, 0.01, -half), new BABYLON.Vector3(i, 0.01, half)]);
+        gridLines.push([new BABYLON.Vector3(-half, 0.01, i), new BABYLON.Vector3(half, 0.01, i)]);
+      }
+      const grid = BABYLON.MeshBuilder.CreateLineSystem('grid', { lines: gridLines }, scene);
+      grid.color = new BABYLON.Color3(0.2, 0.2, 0.4);
+      grid.alpha = 0.4;
+
+      // ── Cube (PBR) ────────────────────────────────────────────
+      const cube = BABYLON.MeshBuilder.CreateBox('cube', { size: 2 }, scene);
+      cube.position = new BABYLON.Vector3(-2, 1, 0);
+      const cubeMat = new BABYLON.PBRMaterial('cubeMat', scene);
+      cubeMat.albedoColor = new BABYLON.Color3(0.263, 0.380, 0.933);
+      cubeMat.roughness = 0.3;
+      cubeMat.metallic = 0.7;
+      cube.material = cubeMat;
+      cube.receiveShadows = true;
+      shadowGen.addShadowCaster(cube);
+
+      // ── Sphere ────────────────────────────────────────────────
+      const sphere = BABYLON.MeshBuilder.CreateSphere('sphere', { diameter: 2, segments: 64 }, scene);
+      sphere.position = new BABYLON.Vector3(2, 1, 0);
+      const sphereMat = new BABYLON.PBRMaterial('sphereMat', scene);
+      sphereMat.albedoColor = new BABYLON.Color3(0.18, 0.769, 0.714);
+      sphereMat.roughness = 0.2;
+      sphereMat.metallic = 0.5;
+      sphereMat.emissiveColor = new BABYLON.Color3(0.02, 0.12, 0.12);
+      sphere.material = sphereMat;
+      sphere.receiveShadows = true;
+      shadowGen.addShadowCaster(sphere);
+
+      // ── Torus ─────────────────────────────────────────────────
+      const torus = BABYLON.MeshBuilder.CreateTorus(
+        'torus',
+        { diameter: 1.6, thickness: 0.6, tessellation: 64 },
+        scene
+      );
+      torus.position = new BABYLON.Vector3(0, 1, -3);
+      const torusMat = new BABYLON.PBRMaterial('torusMat', scene);
+      torusMat.albedoColor = new BABYLON.Color3(0.957, 0.635, 0.38);
+      torusMat.roughness = 0.4;
+      torusMat.metallic = 0.6;
+      torus.material = torusMat;
+      torus.receiveShadows = true;
+      shadowGen.addShadowCaster(torus);
+
+      // ── Animation loop ────────────────────────────────────────
+      let t = 0;
+      scene.registerBeforeRender(() => {
+        t += engine.getDeltaTime() / 1000;
+
+        cube.rotation.x = t * 0.6;
+        cube.rotation.y = t * 0.9;
+
+        sphere.position.y = 1 + Math.abs(Math.sin(t * 1.8)) * 2;
+
+        torus.rotation.x = t * 0.7;
+        torus.rotation.z = t * 0.4;
+      });
+
+      return scene;
+    }
+
+    const scene = createScene();
+
+    engine.runRenderLoop(() => scene.render());
+
+    window.addEventListener('resize', () => engine.resize());
+  </script>
+</body>
+</html>
