@@ -293,7 +293,7 @@
       preserveDrawingBuffer: true, stencil: true
     });
 
-    let dirLight, fillLight, hemi, ssao, ssr, pipeline, scene;
+    let dirLight, fillLight, hemi, ssao, ssr, pipeline, scene, camera;
     const bounceLights = [], bounceMats = [];
 
     function createScene() {
@@ -309,8 +309,8 @@
       );
       scene.environmentIntensity = 0.6;
 
-      // Camera
-      const camera = new BABYLON.ArcRotateCamera(
+      // Camera (zapisana w zewnętrznym zasięgu, potrzebna do SSR attach/detach)
+      camera = new BABYLON.ArcRotateCamera(
         'cam', -Math.PI / 4, Math.PI / 3.5, 12, new BABYLON.Vector3(0, 1, 0), scene
       );
       camera.attachControl(canvas, true);
@@ -414,18 +414,26 @@
       ssao.expensiveBlur = true; ssao.samples = 16; ssao.maxZ = 250;
       scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline('ssao', camera);
 
-      // SSR – disabled by default; enabled via toggle
-      // Using forceGeometryBuffer=true for compatibility with SSAO2 pipeline
-      ssr = new BABYLON.SSRRenderingPipeline('ssr', scene, [camera], true);
-      ssr.step       = 32;
-      ssr.maxSteps   = 256;
-      ssr.strength   = 1;
-      ssr.thickness  = 0.1;
-      ssr.maxDistance = 1000;
-      ssr.roughnessFactor = 0.05;
-      ssr.blurDispersionStrength = 0;
-      ssr.enableSmoothReflections = false;
-      ssr.isEnabled  = false;   // start disabled
+      // SSR – tworzymy bez kamer (nie dołączamy do kamery), żeby zacząć wyłączone.
+      // Toggle włącza/wyłącza przez attachCamerasToRenderPipeline / detach.
+      // forceGeometryBuffer=false → używa prepass (kompatybilne z SSAO2).
+      try {
+        ssr = new BABYLON.SSRRenderingPipeline('ssr', scene, [], false);
+        ssr.step       = 32;
+        ssr.maxSteps   = 256;
+        ssr.strength   = 1;
+        ssr.thickness  = 0.1;
+        ssr.maxDistance = 1000;
+        ssr.roughnessFactor = 0.05;
+        ssr.blurDispersionStrength = 0;
+        ssr.enableSmoothReflections = false;
+        // Start z odłączonymi kamerami = wyłączone
+      } catch (e) {
+        console.warn('SSRRenderingPipeline niedostępny:', e);
+        ssr = null;
+        document.getElementById('e-ssr').disabled = true;
+        document.getElementById('efx-ssr').style.opacity = '0.4';
+      }
 
       // DefaultRenderingPipeline
       pipeline = new BABYLON.DefaultRenderingPipeline('default', true, scene, [camera]);
@@ -502,15 +510,22 @@
     bindControl('ssaos', v => { ssao.totalStrength = v; });
     bindControl('ssaor', v => { ssao.radius = v; });
     // SSR
-    bindToggle('ssr',    v => { ssr.isEnabled = v; });
-    bindControl('ssrs',  v => { ssr.strength = v; });
-    bindControl('ssrst', v => { ssr.step = v; });
-    bindControl('ssrms', v => { ssr.maxSteps = v; });
-    bindControl('ssrth', v => { ssr.thickness = v; });
-    bindControl('ssrmd', v => { ssr.maxDistance = v; });
-    bindControl('ssrrf', v => { ssr.roughnessFactor = v; });
-    bindControl('ssrbd', v => { ssr.blurDispersionStrength = v; });
-    bindToggle('ssrsm',  v => { ssr.enableSmoothReflections = v; });
+    bindToggle('ssr',    v => {
+      if (!ssr) return;
+      if (v) {
+        scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline('ssr', camera);
+      } else {
+        scene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline('ssr', [camera]);
+      }
+    });
+    bindControl('ssrs',  v => { if (ssr) ssr.strength = v; });
+    bindControl('ssrst', v => { if (ssr) ssr.step = v; });
+    bindControl('ssrms', v => { if (ssr) ssr.maxSteps = v; });
+    bindControl('ssrth', v => { if (ssr) ssr.thickness = v; });
+    bindControl('ssrmd', v => { if (ssr) ssr.maxDistance = v; });
+    bindControl('ssrrf', v => { if (ssr) ssr.roughnessFactor = v; });
+    bindControl('ssrbd', v => { if (ssr) ssr.blurDispersionStrength = v; });
+    bindToggle('ssrsm',  v => { if (ssr) ssr.enableSmoothReflections = v; });
     // Bloom
     bindToggle('bloom',  v => { pipeline.bloomEnabled = v; });
     bindControl('blw',   v => { pipeline.bloomWeight    = v; });
