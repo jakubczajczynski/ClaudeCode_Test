@@ -63,7 +63,7 @@
 <body>
   <canvas id="renderCanvas"></canvas>
   <a href="index.html" id="back">← Wróć</a>
-  <div id="label">Scena 3D – <span>Babylon.js</span></div>
+  <div id="label">Scena 3D – <span>Babylon.js</span> &nbsp;<small style="opacity:.55;font-size:.78em">IBL + SSAO / GI</small></div>
   <div id="info">Lewy przycisk myszy: obrót &nbsp;|&nbsp; Kółko: zoom &nbsp;|&nbsp; Prawy przycisk: przesunięcie</div>
 
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
@@ -79,6 +79,15 @@
       scene.fogColor = new BABYLON.Color3(0.051, 0.051, 0.102);
       scene.fogStart = 20;
       scene.fogEnd = 60;
+
+      // ── IBL – Global Illumination approx. via Image-Based Lighting ─
+      // Prefiltered .env from Babylon CDN encodes the full sphere of
+      // incoming radiance; PBRMaterial uses it for both diffuse irradiance
+      // (spherical harmonics) and specular GGX lobes → indirect lighting.
+      scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
+        'https://assets.babylonjs.com/environments/environmentSpecular.env', scene
+      );
+      scene.environmentIntensity = 0.6;
 
       // ── Camera ────────────────────────────────────────────────
       const camera = new BABYLON.ArcRotateCamera(
@@ -96,7 +105,7 @@
 
       // ── Lights ────────────────────────────────────────────────
       const hemi = new BABYLON.HemisphericLight('hemi', new BABYLON.Vector3(0, 1, 0), scene);
-      hemi.intensity = 0.5;
+      hemi.intensity = 0.15;  // IBL replaces most ambient
       hemi.diffuse = new BABYLON.Color3(0.53, 0.6, 0.8);
       hemi.groundColor = new BABYLON.Color3(0.1, 0.1, 0.2);
 
@@ -120,9 +129,11 @@
 
       // ── Ground ────────────────────────────────────────────────
       const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 30, height: 30 }, scene);
-      const groundMat = new BABYLON.StandardMaterial('groundMat', scene);
-      groundMat.diffuseColor = new BABYLON.Color3(0.102, 0.102, 0.227);
-      groundMat.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+      // PBRMaterial so the ground also receives IBL irradiance
+      const groundMat = new BABYLON.PBRMaterial('groundMat', scene);
+      groundMat.albedoColor = new BABYLON.Color3(0.102, 0.102, 0.227);
+      groundMat.roughness = 0.95;
+      groundMat.metallic = 0.0;
       ground.material = groundMat;
       ground.receiveShadows = true;
 
@@ -189,6 +200,36 @@
         torus.rotation.x = t * 0.7;
         torus.rotation.z = t * 0.4;
       });
+
+      // ── SSAO2 – Screen-Space Ambient Occlusion ────────────────
+      // Estimates how much ambient/indirect light reaches each surface
+      // point based on the local geometry → darkens crevices and contact
+      // areas, approximating the short-range GI bounce occlusion.
+      const ssao = new BABYLON.SSAO2RenderingPipeline('ssao', scene, {
+        ssaoRatio: 0.5,
+        blurRatio: 1
+      });
+      ssao.radius = 3.5;
+      ssao.totalStrength = 1.4;
+      ssao.expensiveBlur = true;
+      ssao.samples = 16;
+      ssao.maxZ = 250;
+      scene.postProcessRenderPipelineManager
+        .attachCamerasToRenderPipeline('ssao', camera);
+
+      // ── DefaultRenderingPipeline – ACES tone mapping + bloom ──
+      const pipeline = new BABYLON.DefaultRenderingPipeline(
+        'default', true, scene, [camera]
+      );
+      pipeline.bloomEnabled = true;
+      pipeline.bloomThreshold = 0.75;
+      pipeline.bloomWeight = 0.25;
+      pipeline.bloomKernel = 64;
+      pipeline.imageProcessingEnabled = true;
+      pipeline.imageProcessing.toneMappingEnabled = true;
+      pipeline.imageProcessing.toneMappingType =
+        BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+      pipeline.imageProcessing.exposure = 1.2;
 
       return scene;
     }
